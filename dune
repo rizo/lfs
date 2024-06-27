@@ -2,3 +2,8 @@
   (name demo)
   (modules Demo Plugins)
   (libraries commons lfs lfs_path))
+
+(executable
+  (name main)
+  (modules Main Plugins)
+  (libraries commons lfs lfs_path))
