@@ -167,19 +167,19 @@ let s_of_p = string_of_prop
 let (string_of_descr_obj: objet -> world -> string) = fun o w -> 
   let file = w.files#assoc o in
   (file.extrinsic $+$ file.intrinsic) 
-  +> List.map (fun ip -> string_of_prop (w.iprop_prop#assoc ip)) 
-  +> concat "/"
+  |> List.map (fun ip -> string_of_prop (w.iprop_prop#assoc ip)) 
+  |> concat "/"
 
 let (string_extr_of_descr_obj: objet -> world -> string) = fun o w -> 
   let file = w.files#assoc o in
   (file.extrinsic) 
-  +> List.map (fun ip -> string_of_prop (w.iprop_prop#assoc ip)) 
-  +> concat "/"
+  |> List.map (fun ip -> string_of_prop (w.iprop_prop#assoc ip)) 
+  |> concat "/"
 
 
 
 
-let (lfs_mode: world -> whichmode) = fun w -> (w.pwd_history +> top +> snd3)
+let (lfs_mode: world -> whichmode) = fun w -> (w.pwd_history |> top |> snd3)
 
 let (context: world -> context) = fun w -> 
   { 
@@ -192,7 +192,7 @@ let (context: world -> context) = fun w ->
     (* IFNOT OPT3  _O_ =  *)
     (* IFNOT OPT3    if is_files_mode w *)
     (* IFNOT OPT3    then w.files#fold (fun acc (idf, f) -> acc#add (idf, f.intrinsic $+$ f.extrinsic)) (new osetb Setb.empty) *)
-    (* IFNOT OPT3    else w.parts +> fold (fun acc (id, info) ->  *)
+    (* IFNOT OPT3    else w.parts |> fold (fun acc (id, info) ->  *)
     (* IFNOT OPT3            info.parts_info#fold (fun acc (idp, p) -> acc#add (idp, p.pdescription)) acc *)
     (* IFNOT OPT3            ) (new osetb Setb.empty) *)
     conv_iprop = w.iprop_prop;
@@ -210,14 +210,14 @@ let (core_get_fcontent__id: (fakecontent -> filecontent) ref)   = ref
     )
 let (core_get_size_fcontent__slength: (fakecontent -> string) ref) = ref 
     (function 
-    | Core content -> slength content +> i_to_s 
+    | Core content -> slength content |> i_to_s 
     | Real _ -> raise Impossible
     )
 let (core_get_date_fcontent__today: (fakecontent -> Unix.tm) ref) = ref 
     (function 
     | Core content -> 
       (* Why this date ? Because only way to work in core mode. *)
-        Unix.time () +> Unix.localtime 
+        Unix.time () |> Unix.localtime 
     | Real _ -> raise Impossible
     )
 
@@ -251,16 +251,16 @@ let (stat_world: world -> unit) = fun w ->
      *)
   ;
 
-  let count_extr = w.files#tolist +> List.map (fun (idf, file) -> 
+  let count_extr = w.files#tolist |> List.map (fun (idf, file) -> 
     List.length file.extrinsic)
-    +> Common2.sum in
-  let count_intr = w.files#tolist +> List.map (fun (idf, file) -> 
+    |> Common2.sum in
+  let count_intr = w.files#tolist |> List.map (fun (idf, file) -> 
     List.length file.intrinsic) 
-    +> Common2.sum in
-  let count_part = w.partsfile#tolist +> List.map (fun (idp, idf) -> 
-    (((w.parts +> assoc idf).parts_info#assoc idp).pdescription 
-      +> List.length)) 
-    +> Common2.sum in
+    |> Common2.sum in
+  let count_part = w.partsfile#tolist |> List.map (fun (idp, idf) -> 
+    (((w.parts |> assoc idf).parts_info#assoc idp).pdescription 
+      |> List.length)) 
+    |> Common2.sum in
 
   eprintf "Attr/line: %d (files), %d (parts), %d (extrinsic), %d (intrinsic) \n" 
     ((count_extr + count_intr)   /! (w.files#length))
@@ -272,9 +272,9 @@ let (stat_world: world -> unit) = fun w ->
   let count = w.partsfile#fold (fun a (idp, idf) -> 
     a + 
       (upward_props 
-          ((w.parts +> assoc idf).parts_info#assoc idp).pdescription 
+          ((w.parts |> assoc idf).parts_info#assoc idp).pdescription 
           w.graphp 
-        +> length))
+        |> length))
     0 in
   eprintf "Full Attr/line: %d (parts)\n" 
     (count / (w.partsfile#length + 1))
@@ -421,7 +421,7 @@ let rec (check_world: world ->  unit) = fun w ->
     Common2._counter2 := !max_iprop;
     pr2 (spf "check_world: I am adjusting it, now here is the value of counter2 %d" !Common2._counter2);
   end;
-  hook_action_check_world +> Common2.run_hooks_action w;
+  hook_action_check_world |> Common2.run_hooks_action w;
   ()
 and hook_action_check_world = ref [fun p  -> log3 "hook"]
 
@@ -570,17 +570,17 @@ let rec (ext2: formula -> context -> objet oset) = fun f ctx ->
   match f with
   | Single p -> 
       (fun _ -> ctx.extensions#assoc (ctx.conv_prop#assoc p)) 
-      +> !hook_compute_ext (p, ctx)  (*  OPT4 *)
+      |> !hook_compute_ext (p, ctx)  (*  OPT4 *)
   | And (f1, f2) -> (ext2 f1 ctx) $**$ (ext2 f2 ctx) 
   | Or  (f1, f2) -> (ext2 f1 ctx) $++$ (ext2 f2 ctx) 
   | Not f -> (ctx.extensions#assoc iroot) $--$ (ext2 f ctx) (*  OPT3 *)
-        (* IFNOT OPT4 | Single q -> downward_props [ctx.conv_prop#assoc q] ctx.logic_cache ##+> (fun xs -> pr2 (i_to_s (length xs));xs) ##DEBUG ##OPT3  *)
-        (* IFNOT OPT4      +> fold (fun acc p -> acc $++$ (try (ctx.extensions#assoc p) with _ -> empty_ext ())) (empty_ext())  ##OPT3    *)
+        (* IFNOT OPT4 | Single q -> downward_props [ctx.conv_prop#assoc q] ctx.logic_cache ##|> (fun xs -> pr2 (i_to_s (length xs));xs) ##DEBUG ##OPT3  *)
+        (* IFNOT OPT4      |> fold (fun acc p -> acc $++$ (try (ctx.extensions#assoc p) with _ -> empty_ext ())) (empty_ext())  ##OPT3    *)
         (* IFNOT OPT3 | Single q ->  *)
         (* IFNOT OPT3       let q = ctx.conv_prop#assoc q in *)
         (* IFNOT OPT3       let down = downward_props [q] ctx.logic_cache in *)
         (* IFNOT OPT3       ctx._O_#fold  (fun acc (o,ps) ->   *)
-        (* IFNOT OPT3    if (q $?$ ps ||  (down +> exists (fun p -> p $?$ ps)))  *)
+        (* IFNOT OPT3    if (q $?$ ps ||  (down |> exists (fun p -> p $?$ ps)))  *)
         (* IFNOT OPT3    then acc#add o else acc *)
         (* IFNOT OPT3    ) (emptysb()) *)
         (* IFNOT OPT3  | Not f ->        raise Todo *)
@@ -603,7 +603,7 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
   | Classic -> 
      let x = (match f with ((Single x)|(And (Single x, _))) -> x   | _ -> root)
      in
-     (graph#successors (ctx.conv_prop#assoc x)) +> mapo (fun ip -> 
+     (graph#successors (ctx.conv_prop#assoc x)) |> mapo (fun ip -> 
        let newois = 
          (try (ctx.extensions#assoc ip) 
            with Not_found -> empty_ext ()) $**$ ois 
@@ -613,7 +613,7 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
   | Parents -> 
      let x = (match f with ((Single x)|(And (Single x, _))) -> x   | _ -> root)
      in
-     (graph#predecessors (ctx.conv_prop#assoc x)) +> mapo (fun ip -> 
+     (graph#predecessors (ctx.conv_prop#assoc x)) |> mapo (fun ip -> 
         let newois = 
           (try (ctx.extensions#assoc ip) 
           with Not_found -> empty_ext ()) $**$ ois 
@@ -627,8 +627,8 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
  
    let rec dfs  = fun ps -> 
      ps#iter (fun p -> 
-       if not (visited +> hmem p) then begin
-         visited +> hadd (p, true);
+       if not (visited |> hmem p) then begin
+         visited |> hadd (p, true);
          log3 ("dirs:dfs: visisting "^string_of_prop (ctx.conv_iprop#assoc p));
 
          (*  we do a try cos when cd parts some props are no more defined
@@ -643,8 +643,8 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
            (try (ctx.extensions#assoc p) 
              with Not_found -> empty_ext ()) $**$ ois 
          in (* OPT4 *)
-           (* IFNOT OPT4    let newois = (downward_props [p] ctx.logic_cache ##+> (fun xs -> pr2 (i_to_s (length xs));xs) ##DEBUG ##OPT3 *)
-           (* IFNOT OPT4     +> fold (fun acc p -> acc $++$ (try (ctx.extensions#assoc p) with _ -> empty_ext ())) (empty_ext()))  $**$ ois in ##OPT3 *)
+           (* IFNOT OPT4    let newois = (downward_props [p] ctx.logic_cache ##|> (fun xs -> pr2 (i_to_s (length xs));xs) ##DEBUG ##OPT3 *)
+           (* IFNOT OPT4     |> fold (fun acc p -> acc $++$ (try (ctx.extensions#assoc p) with _ -> empty_ext ())) (empty_ext()))  $**$ ois in ##OPT3 *)
            (* IFNOT OPT3 let newois = ext (Single (ctx.conv_iprop#assoc p)) ctx $**$ ois in *)
          
          (* ESTET? duplication of code         *)
@@ -657,8 +657,8 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
                    ctx.logic_cache#ancestors 
                      ((emptysb())#fromlist 
                          ((properties_conj_of_formula f)
-                           +> filter (fun p -> not (is_special_prop p)) (* useless now cos done in conj_of_formula *)
-                           +> map ctx.conv_prop#assoc))  
+                           |> filter (fun p -> not (is_special_prop p)) (* useless now cos done in conj_of_formula *)
+                           |> map ctx.conv_prop#assoc))  
                  in
                  if not (p $??$ props) 
                  then dirs_size := !dirs_size#add (p, newl)
@@ -675,7 +675,7 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
               * ## we want the max, the next parent will do the job 
               * (if he has to do the job)  
               *  if ((graph#predecessors p)#exists 
-              *    (fun p -> not (visited +> hmem p))) ||
+              *    (fun p -> not (visited |> hmem p))) ||
               *     (graph#predecessors p)#exists (fun p -> p $??$ !dirs) subtil: DOC 
               * 
               *  then () 
@@ -691,14 +691,14 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
              let props = ctx.logic_cache#ancestors 
                ((emptysb())#fromlist 
                    ((properties_conj_of_formula f)
-                     +> filter (fun p -> not (is_special_prop p)) (* useless now cos done in conj_of_formula *)
-                     +> map ctx.conv_prop#assoc))  
+                     |> filter (fun p -> not (is_special_prop p)) (* useless now cos done in conj_of_formula *)
+                     |> map ctx.conv_prop#assoc))  
              in
              if not (p $??$ props) 
              then dirs_size := !dirs_size#add (p, newl)
              else dfs (graph#successors p)
                
-         | _ -> visited +> hadd (p, true)
+         | _ -> visited |> hadd (p, true)
        end
      )
    in
@@ -725,14 +725,14 @@ let (dirs2: formula -> misc_options -> context -> (property * int) oset) =
            ]
          in
          let allips = 
-           props +> List.map (fun p -> 
+           props |> List.map (fun p -> 
              graph#successors (ctx.conv_prop#assoc p)
            ) 
-         +> List.fold_left ($++$) (new osetb (Osetb.empty))
+         |> List.fold_left ($++$) (new osetb (Osetb.empty))
          in
          dfs allips
      );
-     !dirs_size +> mapo (fun (x,i) -> (ctx.conv_iprop#assoc x, i)) (emptysb())
+     !dirs_size |> mapo (fun (x,i) -> (ctx.conv_iprop#assoc x, i)) (emptysb())
    end
 
 let dirs a b c = 
@@ -742,7 +742,7 @@ let dirs a b c =
 let (objects: formula -> context -> (property * int) oset -> objet oset) = 
  fun pwd ctx dirs ->
   (* oldsimple: 
-   *  ((ext pwd ctx) $--$ dirs +> big_union_ext (fun (p,i) -> 
+   *  ((ext pwd ctx) $--$ dirs |> big_union_ext (fun (p,i) -> 
    *  ext (And (pwd, Single p)) ctx))#tolist 
    * 
    * note: todo: not sure this code better now that have good union/diff
@@ -841,7 +841,7 @@ let rec (find_parents: property -> logic -> (iproperty ograph * (iproperty, prop
   let implied = children#filter (fun child -> f |= (conv_iprop#assoc child)) in
   if implied#null 
   then (emptysb())#add parent
-  else implied +> big_unionb (fun newparent -> 
+  else implied |> big_unionb (fun newparent -> 
     find_parents f (|=) (graph, conv_iprop) newparent)
 
 let rec (find_children: property -> logic -> (iproperty ograph * (iproperty, property) oassoc) -> iproperty oset -> iproperty oset) = 
@@ -851,7 +851,7 @@ let rec (find_children: property -> logic -> (iproperty ograph * (iproperty, pro
     let (child, others) = (children#getone, children#others) in
     if ((conv_iprop#assoc child) |= f) 
     then find_children f (|=) (graph, conv_iprop) others
-      +> add_child child (|=) conv_iprop
+      |> add_child child (|=) conv_iprop
     else find_children f (|=) (graph, conv_iprop) 
       (others $++$ (graph#successors child))
 
@@ -868,7 +868,7 @@ and (add_child: iproperty -> logic -> (iproperty, property) oassoc -> iproperty 
 let (insert_property: property -> logic -> (iproperty ograph * (iproperty, property) oassoc) -> iproperty -> (iproperty ograph * iproperty * bool)) = 
  fun f (|=) (graph, conv_iprop) top ->
   let parents = find_parents f (|=) (graph, conv_iprop) top in
-  let candidates = parents +> big_unionb 
+  let candidates = parents |> big_unionb 
     (fun parent -> graph#successors parent) 
   in
   let children = find_children f (|=) (graph, conv_iprop) candidates in
@@ -937,17 +937,17 @@ let (update_view: filecontent -> parts_info -> ((int, idpart list) assoc) -> fil
  fun newcontent info marks -> 
   (* opti: slow tout ca, en plus map c lent *)
   newcontent 
-    +> Common2.lines_with_nl
-    +> map (fun  s -> 
+    |> Common2.lines_with_nl
+    |> map (fun  s -> 
       if s =~ mark_regexp________
       then 
-        let mark = regexp_match s ".*:\\([0-9]+\\)" +> s_to_i in
+        let mark = regexp_match s ".*:\\([0-9]+\\)" |> s_to_i in
         assoc mark marks 
-        +> map (fun id -> (info.parts_info#assoc id).pcontent)
-        +> unwords
+        |> map (fun id -> (info.parts_info#assoc id).pcontent)
+        |> unwords
       else s
     ) 
-    +> unwords
+    |> unwords
 
 (*---------------------------------------------------------------------------*)
 type conversion_func = 
@@ -963,7 +963,7 @@ let (create_parts2: idfile -> file -> adv_itransducer -> conversion_func -> part
   in 
 
   let part_prop = Common.profile_code "Lfs.create_parts 2" (fun () -> 
-    parts +> trans +> Common2.zip parts +> Common.index_list )
+    parts |> trans |> Common2.zip parts |> Common.index_list )
   in
 
   (* If use pure data-structure, must get the table that are up to date. 
@@ -976,7 +976,7 @@ let (create_parts2: idfile -> file -> adv_itransducer -> conversion_func -> part
   let (conv_prop, conv_iprop) = (conv_prop(), conv_iprop()) in
 
   Common.profile_code "Lfs.create_parts 3" (fun () -> 
-   part_prop +> fold (fun info ((s, ps), i) -> 
+   part_prop |> fold (fun info ((s, ps), i) -> 
     let o = new_object_part () in
     { parts_info = info.parts_info#add (o,
                                         { fromfile = id;
@@ -988,12 +988,12 @@ let (create_parts2: idfile -> file -> adv_itransducer -> conversion_func -> part
       (* do a try cos there may not be a synchro property *)
       lines_synchro = if (try (conv_prop#assoc (Prop "synchro")) $?$ ps with Not_found -> false) then info.lines_synchro#add i else info.lines_synchro;
       (* todo: take time ? goulot ?  *)
-      synchroinfo = ps +> fold (fun acc ((Iprop xx) as iprop) -> 
+      synchroinfo = ps |> fold (fun acc ((Iprop xx) as iprop) -> 
         let (Prop s) = conv_iprop#assoc iprop  in
         if s =~ "synchro\\([0-9]\\):\\(.*\\)" then
           let (level, str_state) = matched2 s in
           (*  manage more than one prop in state with convention :: for separate the props *)
-          let state = if str_state = "" then [] else let ps = split "::" str_state in ps +> map (fun s -> Prop s) in
+          let state = if str_state = "" then [] else let ps = split "::" str_state in ps |> map (fun s -> Prop s) in
           acc#add (i, (s_to_i level, state))
         else acc
         ) info.synchroinfo;
@@ -1039,7 +1039,7 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
 
   let is_in_clean = ref true in
 
-  (newlines, oldlines) +> diff
+  (newlines, oldlines) |> diff
     (fun newi oldi comparaison -> 
       match comparaison with
 
@@ -1051,7 +1051,7 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
           (if synchro then
             (is_in_clean := true;
 
-             !may_index_del +> iter (fun (newi, oldi) -> 
+             !may_index_del |> iter (fun (newi, oldi) -> 
                let id = oldinfo.line_to_part#assoc oldi in
                newline := !newline#add (newi, id);
              );
@@ -1069,8 +1069,8 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
                 must_index +!> cons newi;
           )
       | (AnotinB | BnotinA) -> 
-          must_index +!> (fun xs -> (!may_index_del +> map fst) @ xs);
-          must_del   +!> (fun xs -> (!may_index_del +> map snd) @ xs);
+          must_index +!> (fun xs -> (!may_index_del |> map fst) @ xs);
+          must_del   +!> (fun xs -> (!may_index_del |> map snd) @ xs);
           is_in_clean := false;
           may_index_del := empty_list;
           if comparaison = AnotinB 
@@ -1078,7 +1078,7 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
           else must_del   +!> cons oldi
     );
   (* duplicated from above *)
-  !may_index_del +> iter (fun (newi, oldi) -> 
+  !may_index_del |> iter (fun (newi, oldi) -> 
     let id = oldinfo.line_to_part#assoc oldi in
     newline := !newline#add (newi, id);
   );
@@ -1087,16 +1087,16 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
   must_index := rev !must_index;
 
   (* TODO use newx and Array.get *)
-  let parts = !must_index +> map (fun i -> nth newlines i) in 
+  let parts = !must_index |> map (fun i -> nth newlines i) in 
   let part_prop = Common.profile_code "Lfs.reindex_parts trans" (fun () -> 
-    parts +> trans +> Common2.zip parts +> (fun x -> Common2.zip x !must_index)
+    parts |> trans |> Common2.zip parts |> (fun x -> Common2.zip x !must_index)
   )
   in
 
   (*  used cos want lfs work with pure data-structure too *)
   let (conv_prop, conv_iprop) = (conv_prop(), conv_iprop()) in
 
-  let info = part_prop +> fold (fun info ((s, ps), i) -> 
+  let info = part_prop |> fold (fun info ((s, ps), i) -> 
     let o = new_object_part () in
     { parts_info = info.parts_info#add (o,
                                        { fromfile = idf;
@@ -1111,7 +1111,7 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
         else info.lines_synchro;
        (* even if dont handle multi, have to parse it, otherwise futur
         * reindex_diff_view2 will get lost *)
-      synchroinfo = ps +> fold (fun acc ((Iprop xx) as iprop) -> 
+      synchroinfo = ps |> fold (fun acc ((Iprop xx) as iprop) -> 
         let (Prop s) = conv_iprop#assoc iprop  in
         if s =~ "synchro\\([0-9]\\):\\(.*\\)" then
           let (level, str_state) = matched2 s in
@@ -1119,7 +1119,7 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
             if str_state = "" 
             then [] 
             else let ps = split "::" str_state in 
-                 ps +> map (fun s -> Prop s) 
+                 ps |> map (fun s -> Prop s) 
           in
           acc#add (i, (s_to_i level, state))
         else acc
@@ -1133,8 +1133,8 @@ let (reindex_parts:  idfile -> filecontent -> (file * parts_info) -> adv_itransd
   } 
   in
   (info,
-  !must_index +> map (fun i -> info.line_to_part#assoc i),
-  !must_del +>   map (fun i -> oldinfo.line_to_part#assoc i)
+  !must_index |> map (fun i -> info.line_to_part#assoc i),
+  !must_del |>   map (fun i -> oldinfo.line_to_part#assoc i)
   )
 
 (*---------------------------------------------------------------------------*)
@@ -1146,7 +1146,7 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
   (* let _ = Timing() in *)
   let estimatedlen =  (* robust: bug if duplicate marks, will not have enough space, use growing array! *)
     let nmarks = length marks in
-    let nobjs  = marks +> fold (fun a (i, xs) -> a + length xs) 0 in
+    let nobjs  = marks |> fold (fun a (i, xs) -> a + length xs) 0 in
     length newlines - nmarks + nobjs
   in 
   let (newline, newsynchro) = (ref (new oarray estimatedlen (-1)), ref (emptysb())) in
@@ -1167,7 +1167,7 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
   let oldx = Array.of_list oldlines in
 
   (* let _ = Timing() in *)
-  let _ = (newlines, oldlines) +> diff 
+  let _ = (newlines, oldlines) |> diff 
       (fun newi oldi comparaison -> 
         (* normally use not at all newi' and oldi', only for the Left of must_index, and to access array of contents *)
         let newi' = newi in
@@ -1180,11 +1180,11 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
         | Match -> 
             if (Array.get oldx oldi' =~ mark_regexp________) 
             then 
-              let mark = regexp_match (Array.get oldx oldi') ".*:\\([0-9]+\\)" +> s_to_i in
+              let mark = regexp_match (Array.get oldx oldi') ".*:\\([0-9]+\\)" |> s_to_i in
               let marks = assoc mark marks in
               (* we are in a big match zone *)
               let i = ref 0 in
-              marks +> iter (fun idpart -> 
+              marks |> iter (fun idpart -> 
                 let newi = newi + !i in
                 let oldi = oldi + !i in
                 (* almost copy paste of beside *)
@@ -1194,7 +1194,7 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
                 if synchro then
                   (is_in_clean := true;
 
-                   !may_index_del +> iter (fun ((newi,_), oldi) -> 
+                   !may_index_del |> iter (fun ((newi,_), oldi) -> 
                      (* let id = idpart in *)
                      let id = oldinfo.line_to_part#assoc oldi in
                      newline := !newline#add (newi, id);
@@ -1217,7 +1217,7 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
               if synchro then
               (is_in_clean := true;
 
-               !may_index_del +> iter (fun ((newi,_), oldi) -> 
+               !may_index_del |> iter (fun ((newi,_), oldi) -> 
                  let id = oldinfo.line_to_part#assoc oldi in
                  newline := !newline#add (newi, id);
                                       );
@@ -1241,8 +1241,8 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
                 then raise Here
             | _ -> raise Impossible
             );
-            must_index +!> (fun xs -> (!may_index_del +> map fst) @ xs);
-            must_del   +!> (fun xs -> (!may_index_del +> map snd) @ xs);
+            must_index +!> (fun xs -> (!may_index_del |> map fst) @ xs);
+            must_del   +!> (fun xs -> (!may_index_del |> map snd) @ xs);
             is_in_clean := false;
             may_index_del := empty_list;
             if comparaison = AnotinB 
@@ -1251,30 +1251,30 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
       ) in
 
   (* duplicated from above *)
-  let _ =   !may_index_del +> iter (fun ((newi,_), oldi) -> 
+  let _ =   !may_index_del |> iter (fun ((newi,_), oldi) -> 
                  let id = oldinfo.line_to_part#assoc oldi in
                  newline := !newline#add (newi, id);
                    ) in
 
   let _ = (must_del := rev !must_del; must_index := rev !must_index) in
 
-  (* no subtil:  let _ = (!must_del +> List.iter (fun i -> newinfo := !newinfo#delkey (oldinfo.line_to_part#assoc i))) in *)
+  (* no subtil:  let _ = (!must_del |> List.iter (fun i -> newinfo := !newinfo#delkey (oldinfo.line_to_part#assoc i))) in *)
   (*  this is done by the caller, cant doit here, cos before doing that, we must get the prop of the obj to delete it in extparts *)
   (*  and this part is made in the caller, so this deletion too must be done after *)
 
   (* let _ = Timing() in *)
-  let parts = !must_index +> map (fun (newi, x) -> 
+  let parts = !must_index |> map (fun (newi, x) -> 
     match x with 
     | Left newi' -> Array.get newx newi' 
     | Right oldi -> (oldinfo.parts_info#assoc (oldinfo.line_to_part#assoc oldi)).pcontent
     )
   in
-  let part_prop = parts +> trans +> zip parts +> (fun x -> !must_index +> map fst +> zip x) in
+  let part_prop = parts |> trans |> zip parts |> (fun x -> !must_index |> map fst |> zip x) in
 
   (*  used cos want lfs work with pure data-structure too *)
   let (conv_prop, conv_iprop) = (conv_prop(), conv_iprop()) in
 
-  let info = part_prop +> fold (fun info ((s, ps), i) -> 
+  let info = part_prop |> fold (fun info ((s, ps), i) -> 
       let o = new_object_part () in
       { parts_info = info.parts_info#add (o,
                                           { fromfile = id;
@@ -1284,11 +1284,11 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
        line_to_part = info.line_to_part#add (i, o);
        lines_synchro = if (try (conv_prop#assoc (Prop "synchro")) $?$ ps with Not_found -> false) then info.lines_synchro#add i else info.lines_synchro;
        (*  even if dont handle multi, have to parse it, otherwise futur reindex_diff_view2 will get lost *)
-       synchroinfo = ps +> fold (fun acc ((Iprop xx) as iprop) -> 
+       synchroinfo = ps |> fold (fun acc ((Iprop xx) as iprop) -> 
           let (Prop s) = conv_iprop#assoc iprop  in
           if s =~ "synchro\\([0-9]\\):\\(.*\\)" then
             let (level, str_state) = matched2 s in
-            let state = if str_state = "" then [] else let ps = split "::" str_state in ps +> map (fun s -> Prop s) in
+            let state = if str_state = "" then [] else let ps = split "::" str_state in ps |> map (fun s -> Prop s) in
             acc#add (i, (s_to_i level, state))
           else acc
          ) info.synchroinfo;
@@ -1297,8 +1297,8 @@ let reindex_diff_view = fun id (newc, oldc) (oldf, oldinfo, marks) trans (conv_p
    ) { parts_info = oldinfo.parts_info; line_to_part = !newline; lines_synchro = !newsynchro; synchroinfo = emptyab();} 
   in
   (info,
-   !must_index +> map (fun (newi, _) -> info.line_to_part#assoc newi),
-   !must_del +>    map (fun i -> oldinfo.line_to_part#assoc i)
+   !must_index |> map (fun (newi, _) -> info.line_to_part#assoc newi),
+   !must_del |>    map (fun i -> oldinfo.line_to_part#assoc i)
   )
 
 (*---------------------------------------------------------------------------*)
@@ -1311,7 +1311,7 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
   (* let _ = Timing() in *)
   let estimatedlen =  (* robust: bug if duplicate marks, will not have enough space, use growing array! *)
     let nmarks = length marks in
-    let nobjs  = marks +> fold (fun a (i, xs) -> a + length xs) 0 in
+    let nobjs  = marks |> fold (fun a (i, xs) -> a + length xs) 0 in
     length newlines - nmarks + nobjs
   in 
   let (newline, newsynchro, newsynchroinfo) = (ref (new oarray estimatedlen (-1)), ref (emptysb()), ref (emptyab())) in
@@ -1338,7 +1338,7 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
   let oldx = Array.of_list oldlines in
 
   (* let _ = Timing() in *)
-  let _ = (newlines, oldlines) +> diff 
+  let _ = (newlines, oldlines) |> diff 
       (fun newi oldi comparaison -> 
         (* normally use not at all newi' and oldi', only for the Left of must_index, and to access array of contents *)
         let newi' = newi in
@@ -1351,11 +1351,11 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
         | Match -> 
             if (Array.get oldx oldi' =~ mark_regexp________) 
             then 
-              let mark = regexp_match (Array.get oldx oldi') ".*:\\([0-9]+\\)" +> s_to_i in
+              let mark = regexp_match (Array.get oldx oldi') ".*:\\([0-9]+\\)" |> s_to_i in
               let marks = assoc mark marks in
               (* we are in a big match zone *)
               let i = ref 0 in
-              marks +> iter (fun idpart -> 
+              marks |> iter (fun idpart -> 
                 let newi = newi + !i in
                 let oldi = oldi + !i in
                 (* almost copy paste of beside *)
@@ -1380,7 +1380,7 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
                   (*  but if end of levelX-1 dirty => will not reindex, so state levelX does not depend content after at least *)
                   (* note also that even if have synchro2 without synchro1 (ex article have not \chapter) then works *)
                   (*  cos at start we are in is_in_clean1 = true. *)
-                  !may_index_del +> iter (fun ((newi,_,_) , oldi) -> 
+                  !may_index_del |> iter (fun ((newi,_,_) , oldi) -> 
                     let id = oldinfo.line_to_part#assoc oldi in
                     newline := !newline#add (newi, id);
                                          );
@@ -1427,7 +1427,7 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
                   ((level_synchro = 4 && !is_in_clean1 && !is_in_clean2 && !is_in_clean3))
                then
                  (
-                  !may_index_del +> iter (fun ((newi,_,_) , oldi) -> 
+                  !may_index_del |> iter (fun ((newi,_,_) , oldi) -> 
                     let id = oldinfo.line_to_part#assoc oldi in
                     newline := !newline#add (newi, id);
                                          );
@@ -1461,8 +1461,8 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
             | _ -> raise Impossible
             );
 
-            must_index +!> (fun xs -> (!may_index_del +> map fst) @ xs);
-            must_del   +!> (fun xs -> (!may_index_del +> map snd) @ xs);
+            must_index +!> (fun xs -> (!may_index_del |> map fst) @ xs);
+            must_del   +!> (fun xs -> (!may_index_del |> map snd) @ xs);
 
             (* perhaps we have added a new synchro1, in that case have to retransduce *)
             (*  and not just until next synchro2 *)
@@ -1486,7 +1486,7 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
                (*  used cos want lfs work with pure data-structure too *)
                let (conv_prop, conv_iprop) = (conv_prop(), conv_iprop()) in
                let iprops = match xs with [x] -> x | _ -> raise Impossible in
-               iprops +> iter (fun iprop -> 
+               iprops |> iter (fun iprop -> 
                  let (Prop s) = conv_iprop#assoc iprop in
                  if s =~ "synchro\\([0-9]\\):\\(.*\\)" then
                    let (level, _) = matched2 s in
@@ -1506,19 +1506,19 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
       ) in
 
   (* duplicated from above *)
-  let _ =   !may_index_del +> iter (fun ((newi,_,_), oldi) -> 
+  let _ =   !may_index_del |> iter (fun ((newi,_,_), oldi) -> 
                  let id = oldinfo.line_to_part#assoc oldi in
                  newline := !newline#add (newi, id);
                    ) in
 
   let _ = (must_del := rev !must_del; must_index := rev !must_index) in
 
-  (* no subtil:  let _ = (!must_del +> List.iter (fun i -> newinfo := !newinfo#delkey (oldinfo.line_to_part#assoc i))) in *)
+  (* no subtil:  let _ = (!must_del |> List.iter (fun i -> newinfo := !newinfo#delkey (oldinfo.line_to_part#assoc i))) in *)
   (*  this is done by the caller, cant doit here, cos before doing that, we must get the prop of the obj to delete it in extparts *)
   (*  and this part is made in the caller, so this deletion too must be done after *)
 
   (* let _ = Timing() in *)
-  let parts = !must_index +> map (fun (newi, _, x) -> 
+  let parts = !must_index |> map (fun (newi, _, x) -> 
     match x with 
     | Left newi' -> Array.get newx newi' 
     | Right oldi -> (oldinfo.parts_info#assoc (oldinfo.line_to_part#assoc oldi)).pcontent
@@ -1526,16 +1526,16 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
   in
 
   (* let _ = Timing() in *)
-  let part_prop = parts +> trans +> zip parts +> (fun x -> !must_index +> map (fun (x,y,z) -> (x,y)) +> zip x) in
+  let part_prop = parts |> trans |> zip parts |> (fun x -> !must_index |> map (fun (x,y,z) -> (x,y)) |> zip x) in
 
   (* let _ = Timing() in *)
   (*  used cos want lfs work with pure data-structure too *)
   let (conv_prop, conv_iprop) = (conv_prop(), conv_iprop()) in
-  (*  normally should do it more often cos after call conv (psadd+> ...) but those prop already exist so dont change anything *)
+  (*  normally should do it more often cos after call conv (psadd|> ...) but those prop already exist so dont change anything *)
 
-  let info = part_prop +> fold (fun info ((s, ps), (i, psadd)) -> 
+  let info = part_prop |> fold (fun info ((s, ps), (i, psadd)) -> 
       let o = new_object_part () in
-      let iprops = psadd +> map_filter conv in 
+      let iprops = psadd |> map_filter conv in 
       let ps = iprops @ ps in
       { parts_info = info.parts_info#add (o,
                                           { fromfile = id;
@@ -1544,11 +1544,11 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
                                           }) ;
        line_to_part = info.line_to_part#add (i, o);
        lines_synchro = if (try (conv_prop#assoc (Prop "synchro")) $?$ ps with Not_found -> false) then info.lines_synchro#add i else info.lines_synchro;
-       synchroinfo = ps +> fold (fun acc iprop -> 
+       synchroinfo = ps |> fold (fun acc iprop -> 
         let (Prop s) = conv_iprop#assoc iprop in
         if s =~ "synchro\\([0-9]\\):\\(.*\\)" then
           let (level, str_state) = matched2 s in
-          let state = if str_state = "" then [] else let ps = split "::" str_state in ps +> map (fun s -> Prop s) in
+          let state = if str_state = "" then [] else let ps = split "::" str_state in ps |> map (fun s -> Prop s) in
           acc#add (i, (s_to_i level, state))
         else acc
         ) info.synchroinfo;
@@ -1557,8 +1557,8 @@ let reindex_diff_view2 = fun id (newc, oldc) (oldf, oldinfo, marks) trans conv (
   in
   (* let _ = Timing() in *)
   (info,
-   !must_index +> map (fun (newi, _, _) -> info.line_to_part#assoc newi),
-   !must_del +>    map (fun i -> oldinfo.line_to_part#assoc i)
+   !must_index |> map (fun (newi, _, _) -> info.line_to_part#assoc newi),
+   !must_del |>    map (fun i -> oldinfo.line_to_part#assoc i)
   )
 
 (*****************************************************************************)
@@ -1646,15 +1646,15 @@ let transducer_system filename =
  * (et les stats seront plus fausses car plein de prop parasites)
  * 
  * old: 
- *   (fun contents -> contents +> map (fun c -> 
- *       set [(Prop ("file:" ^ filename))] +> map_filter conv))
+ *   (fun contents -> contents |> map (fun c -> 
+ *       set [(Prop ("file:" ^ filename))] |> map_filter conv))
  * old: 
- *   (fun contents -> index_list contents +> map (fun (c, n) -> 
+ *   (fun contents -> index_list contents |> map (fun (c, n) -> 
  *       set [Prop ("part:" ^ (i_to_s n))])) 
  * but sux for synchro cos changed each time
  *)
 let adv_transducer_system conv filename file = 
-  (fun contents -> contents +> map (fun c -> 
+  (fun contents -> contents |> map (fun c -> 
     file.extrinsic $+$ file.intrinsic)) 
 
 (*---------------------------------------------------------------------------*)
@@ -1674,13 +1674,13 @@ let rec (find_trans: world -> (property -> iproperty option) -> property -> stri
       with Not_found -> empty_ext()
     in
     let candidates = candidates#tolist in
-    candidates +> List.map (fun id -> 
+    candidates |> List.map (fun id -> 
       try 
         (match assoc id w.plugins with
         | Trans t    -> 
             Left t
         | AdvTrans t -> 
-            Right (fun parts -> t parts +> map (map_filter !_check_and_add)) 
+            Right (fun parts -> t parts |> map (map_filter !_check_and_add)) 
         | Logic t    -> failwith "not a transducer plugin"
         )
       with Not_found -> !hook_find_transducer id prop conv
@@ -1714,17 +1714,17 @@ let (transducer: world -> (property -> iproperty option) -> filename -> itransdu
     set [transducer_system filename] 
     $@$
     (find_trans w conv (Prop "transducer:") suffix 
-      +> map (function 
+      |> map (function 
       | (Left t) -> t 
       | _ -> failwith "not a transducer plugin"
       )
     ) 
   in
   fun content -> 
-    transducers +> big_union (fun trans -> 
+    transducers |> big_union (fun trans -> 
       trans content
     ) 
-    +> map_filter conv
+    |> map_filter conv
 
 
 
@@ -1733,8 +1733,8 @@ let (transducer_sys: world -> (property -> iproperty option) -> filename -> itra
   let transducers = set [transducer_system filename] in 
   fun content -> 
     transducers 
-    +> big_union (fun trans -> trans content) 
-    +> Common.map_filter conv
+    |> big_union (fun trans -> trans content) 
+    |> Common.map_filter conv
 
 
 
@@ -1745,18 +1745,18 @@ let (adv_transducer: world -> (property -> iproperty option) -> filename -> file
     (find_trans w conv (Prop "adv_transducer:") 
      ((filesuffix filename) 
         (* make compatibility trick *)
-       +> (fun s -> if filename = "Makefile" then "make" else s 
+       |> (fun s -> if filename = "Makefile" then "make" else s 
        ))
-     +> map (function 
+     |> map (function 
      | (Right t) -> t 
      | _ -> failwith "not an advanced transducer plugin")
     ) 
   in
   fun parts -> 
-    transducers +> fold (fun props trans -> 
+    transducers |> fold (fun props trans -> 
       let newprops = trans parts in
-      zip props newprops +> map (fun (s1, s2) -> (s1 $+$ s2))
-     ) (parts +> map (fun part -> empty_list))
+      zip props newprops |> map (fun (s1, s2) -> (s1 $+$ s2))
+     ) (parts |> map (fun part -> empty_list))
 
 
 
@@ -1814,7 +1814,7 @@ let valid_new_prop_name s =
   let is_not_extension_prop =
     if is_vattr (Prop s) 
     then 
-      not (List.mem (attr_vattr (Prop s) +> string_of_prop) [
+      not (List.mem (attr_vattr (Prop s) |> string_of_prop) [
         "inode:";
         "google:"; "glimpse:"; "agrep:"; "stree:"; "all:";
       ])
@@ -1839,29 +1839,29 @@ let valid_new_file_name s =
     "RCS";
     "."; "..";
   ])
-  && (not (s =~ ".*<[0-9]+>.*"))
+  && (not (s =~ ".*<[0-9]|>.*"))
 
 
 
 let sanitize_lfs2 s =
-  s +> Str.global_replace (Str.regexp "/") "_slash_"
-    +> Str.global_replace (Str.regexp "\\.\\.") "_dotdot_"
+  s |> Str.global_replace (Str.regexp "/") "_slash_"
+    |> Str.global_replace (Str.regexp "\\.\\.") "_dotdot_"
     (* logic *)
-    +> Str.global_replace (Str.regexp ")") "_lparen_"
-    +> Str.global_replace (Str.regexp "(") "_rparen_"
-    +> Str.global_replace (Str.regexp "&") "_and_"
-    +> Str.global_replace (Str.regexp "|") "_or_"
-    +> Str.global_replace (Str.regexp "!") "_not_"
+    |> Str.global_replace (Str.regexp ")") "_lparen_"
+    |> Str.global_replace (Str.regexp "(") "_rparen_"
+    |> Str.global_replace (Str.regexp "&") "_and_"
+    |> Str.global_replace (Str.regexp "|") "_or_"
+    |> Str.global_replace (Str.regexp "!") "_not_"
 
     (* special file handling. cf also valid_new_file_name *)
-    +> Str.global_replace (Str.regexp "\\<") "_inf_"
-    +> Str.global_replace (Str.regexp "\\>") "_sup_"
+    |> Str.global_replace (Str.regexp "\\<") "_inf_"
+    |> Str.global_replace (Str.regexp "\\>") "_sup_"
 
     (* to avoid shell pb when use Common.command2 *)
-    +> Str.global_replace (Str.regexp "\\$") "_dollar_"
-    +> Str.global_replace (Str.regexp "#") "_sharp_"
-    +> Str.global_replace (Str.regexp "%") "_percent_"
-    +> Str.global_replace (Str.regexp "'") "_quote_"
+    |> Str.global_replace (Str.regexp "\\$") "_dollar_"
+    |> Str.global_replace (Str.regexp "#") "_sharp_"
+    |> Str.global_replace (Str.regexp "%") "_percent_"
+    |> Str.global_replace (Str.regexp "'") "_quote_"
 
 let sanitize_lfs s =
   Common.profile_code "Lfs.sanitize" (fun () -> sanitize_lfs2 s)
@@ -1991,7 +1991,7 @@ let (check_and_add_property: property -> iproperty option) = fun p ->
         then ip 
         else begin
           (* let _ = Timing() in *)
-          hook_action_add_prop +> Common2.run_hooks_action p;
+          hook_action_add_prop |> Common2.run_hooks_action p;
           w := {!w with 
             graphp = graph;
             iprop_prop = !w.iprop_prop#add (ip, p); 
@@ -2003,7 +2003,7 @@ let (check_and_add_property: property -> iproperty option) = fun p ->
             extfiles = 
               !w.extfiles#add (ip, 
                               (!w.graphp#successors ip) 
-                              +> big_union_ext (fun p -> !w.extfiles#assoc p)) 
+                              |> big_union_ext (fun p -> !w.extfiles#assoc p)) 
                     
           };
           (* bugfix: dont do '(if not (is_files_mode !w)) then' 
@@ -2014,7 +2014,7 @@ let (check_and_add_property: property -> iproperty option) = fun p ->
               !w.extparts#add 
                 (ip,                                                (* OPT3 *)
                 (!w.graphp#successors ip)                           (* OPT3 *)
-                +> big_union_ext 
+                |> big_union_ext 
                   (fun p -> try !w.extparts#assoc p 
                             with Not_found -> empty_ext()))     (* OPT3 *)
           };                                                                      (* OPT3 *)
@@ -2028,7 +2028,7 @@ let (check_and_add_property: property -> iproperty option) = fun p ->
       | Not_found -> 
         (* let _ = Timing() in *)
         let ip = new_iprop () in
-        hook_action_add_prop +> Common2.run_hooks_action p;
+        hook_action_add_prop |> Common2.run_hooks_action p;
         w := {!w with 
           graphp = (!w.graphp#add_node ip)#add_arc (iattr, ip);
           iprop_prop = !w.iprop_prop#add (ip, p); 
@@ -2087,22 +2087,22 @@ let (ls2: unit -> ((property * int) set * idfile set)) = fun () ->
 
     | _ when options.ls_mode = CA -> 
         let directories' = (dirs pwd {options with ls_mode = Strict} ctx) in
-        let candidates = directories'#tolist +> List.sort (fun (p1,i1) (p2,i2) -> - (compare i1 i2)) in
-        let candidates = candidates +> map (fun (p,i) -> (p, i, 
+        let candidates = directories'#tolist |> List.sort (fun (p1,i1) (p2,i2) -> - (compare i1 i2)) in
+        let candidates = candidates |> map (fun (p,i) -> (p, i, 
              (try (ctx.extensions#assoc (ctx.conv_prop#assoc p)) with Not_found -> empty_ext ()) $**$ ois)) in
 
         (* when .ca, try now also to gather in x&y&z *)
         (* for the moment do it tricky/ugly way by returning in ls in property in fact a formula, *)
         (*  but objects assume that there is only Single property => ls internally compute 2 directories *)
         (*  one return, and one pass to objects for this special case *)
-        (*  less: if attr valué ? need put () around ? *)
+        (*  less: if attr valuï¿½ ? need put () around ? *)
                                                           
         let rec aux acc = function
           | [] -> acc
           | ((p1,i1,ext1)::xs) as all -> 
               (* old: aux  *)
               (* old:    (acc#add (p1,i1)) *)
-              (* old:    (xs +> filter (fun (p2,i2,ext2) -> i1 = i2 || not (ext2 $<<=$ ext1))) *)
+              (* old:    (xs |> filter (fun (p2,i2,ext2) -> i1 = i2 || not (ext2 $<<=$ ext1))) *)
               (*  want agglomerate some property together, when they are equivalent *)
                let (acc1, acc2) = acc in
                let (same, xs) = 
@@ -2126,19 +2126,19 @@ let (ls2: unit -> ((property * int) set * idfile set)) = fun () ->
                  spanlike all
                in
                (* ugly: kind of fake Prop, cleaner would be that ls does not return a list of prop but a list of formula *)
-               let bigfakeprop = same +> map (fun (Prop s, _, _) -> s) +> join "&" +> (fun s -> Prop s) in
+               let bigfakeprop = same |> map (fun (Prop s, _, _) -> s) |> join "&" |> (fun s -> Prop s) in
 
 
                aux 
                   (acc1#add (p1, i1),
                    acc2#add (bigfakeprop, i1)
                    )
-                  (xs +> filter (fun (p2,i2,ext2) -> 
+                  (xs |> filter (fun (p2,i2,ext2) -> 
                         (*opti*) i1 = i2 || 
                         not (ext2 $<<=$ ext1)))
 
         in
-        aux (emptysb(), emptysb()) candidates +> (fun (acc1, acc2) -> (acc1, Some acc2))
+        aux (emptysb(), emptysb()) candidates |> (fun (acc1, acc2) -> (acc1, Some acc2))
 
   | _ when options.ls_mode = Int  -> 
        if ois#length <> 1 || lfs_mode !w <> Files then raise Todo
@@ -2146,7 +2146,7 @@ let (ls2: unit -> ((property * int) set * idfile set)) = fun () ->
          let idfile = ois#getone in
          let file = !w.files#assoc idfile in
          let extr = file.extrinsic in
-         let extr2 = extr +> List.map (fun ip -> let p = ctx.conv_iprop#assoc ip in p, 0) in
+         let extr2 = extr |> List.map (fun ip -> let p = ctx.conv_iprop#assoc ip in p, 0) in
          ((emptysb())#fromlist extr2,
           None)
 
@@ -2154,7 +2154,7 @@ let (ls2: unit -> ((property * int) set * idfile set)) = fun () ->
   | _ -> (dirs pwd {options with ls_mode = mode'} ctx), None
   in
 
-  (directories#tolist +> (fun xs -> match diropt2 with None -> xs | Some dir2 -> dir2#tolist)  ,
+  (directories#tolist |> (fun xs -> match diropt2 with None -> xs | Some dir2 -> dir2#tolist)  ,
 
    match lfs_mode !w with
    | Files -> 
@@ -2164,7 +2164,7 @@ let (ls2: unit -> ((property * int) set * idfile set)) = fun () ->
    | Parts ->
       (* when one file, can have strange effect, dont see anymore the file cos no more, prop in this view => this special case *)
        if length !w.parts = 1 
-       then !w.parts +> big_union (fun (id, info) -> set [id]) 
+       then !w.parts |> big_union (fun (id, info) -> set [id]) 
        else ((ext pwd ctx)#fold (fun acc o -> acc#add (!w.partsfile#assoc o)) (emptysb()))#tolist
    )
 let ls a =
@@ -2176,9 +2176,9 @@ let id_to_filename a =
   Common.profile_code "Lfs.id_to_filename" (fun () -> id_to_filename2 a)
 
 let ls_filenames()  = 
-  ls() +> snd +> List.map id_to_filename
+  ls() |> snd |> List.map id_to_filename
 let ls_id_of_name s = 
-  ls() +> snd +> List.find (fun id -> id_to_filename id = s)
+  ls() |> snd |> List.find (fun id -> id_to_filename id = s)
 
 
 (*---------------------------------------------------------------------------*)
@@ -2203,9 +2203,9 @@ let rec (cd2: path_element -> unit) = function
   | Element (Single (Prop x)) when x =~ "\\(.*\\):\\([io][sf]\\)=>=" -> 
       let (rel, kind) = matched2 x in 
       assert (kind = "is" || kind = "of");
-      ls() +> (fun (dirs, files) ->  
+      ls() |> (fun (dirs, files) ->  
         let newquery = 
-          dirs +> fold_left (fun a ((Prop s),_) -> 
+          dirs |> fold_left (fun a ((Prop s),_) -> 
             if s =~ (rel ^ ":" ^ kind ^ "=i__\\([0-9]+\\)") 
             then
               let os = matched1 s in
@@ -2231,7 +2231,7 @@ let rec (cd2: path_element -> unit) = function
        }
      else begin
        (* in fact a fold insert_assoc *)
-       let partsinfo = files_here +> map (fun idfile ->
+       let partsinfo = files_here |> map (fun idfile ->
          let file = !w.files#assoc idfile in
          log2 ("indexing:" ^ (i_to_s idfile));
          (idfile, create_parts idfile file 
@@ -2243,7 +2243,7 @@ let rec (cd2: path_element -> unit) = function
          parts = partsinfo;
        };
        w := {!w with
-         partsfile = !w.parts +> fold (fun acc (id, info) -> 
+         partsfile = !w.parts |> fold (fun acc (id, info) -> 
            info.parts_info#fold (fun acc (idp, p) -> acc#add (idp, id)) acc
          ) (emptyab())
        };  
@@ -2251,7 +2251,7 @@ let rec (cd2: path_element -> unit) = function
        (*  need that the o in parts_info are ordered (or often ordered), 
         * otherwise cache miss (and so slower) when #add with seti *)
        let (mino, maxo) = 
-         !w.parts +> fold (fun acc (id, info) -> 
+         !w.parts |> fold (fun acc (id, info) -> 
            info.parts_info#fold (fun (mino, maxo) (idp, p) -> (min idp mino, max idp maxo)) acc
          ) (max_int, 0) in
        log2 (sprintf "min = %d, max = %d" mino maxo);
@@ -2259,14 +2259,14 @@ let rec (cd2: path_element -> unit) = function
        (* let _ = Timing() in *)
        let extparts = (* OPT3 *)
 
-(*          !w.parts +> fold (fun acc (_idf, info) ->                                                            ##OPT3 *)
+(*          !w.parts |> fold (fun acc (_idf, info) ->                                                            ##OPT3 *)
 (*            info.parts_info#fold (fun extparts (o, p) ->                                                       ##OPT3 *)
-          enum mino maxo +> fold (fun extparts o -> 
+          enum mino maxo |> fold (fun extparts o -> 
             let idf = !w.partsfile#assoc o in
-            let info = !w.parts +> assoc idf in
+            let info = !w.parts |> assoc idf in
             let p = info.parts_info#assoc o in
              upward_props p.pdescription !w.graphp                                                              (* OPT3 *)
-               +> fold (fun extparts p ->            (* apply_assoc p (fun x -> x $+$ set [o]) extp *)          (* OPT3 *)
+               |> fold (fun extparts p ->            (* apply_assoc p (fun x -> x $+$ set [o]) extp *)          (* OPT3 *)
                  (* ESTET? *)                                                                                   (* OPT3 *)
                    let _ = count1 () in
                  match (try Some (extparts#assoc p) with Not_found -> None) with (* apply with assoc default *) (* OPT3 *)
@@ -2347,7 +2347,7 @@ let rec (cd2: path_element -> unit) = function
       if (thd3 (top !w.pwd_history)).cd_mode = NoJump
       then raise Not_found;
 
-      (properties_of_formula f) +> iter (fun p -> 
+      (properties_of_formula f) |> iter (fun p -> 
         if not (is_special_prop p) && check_and_add_property p = None 
         then raise Not_found
       );
@@ -2379,7 +2379,7 @@ and cd a =
 
 let (dopath: path -> (unit -> 'a) -> 'a) = fun path op -> 
   let old_pwd = !w.pwd_history in
-  path +> iter (fun p -> cd p);
+  path |> iter (fun p -> cd p);
   let x = op () in
   w := {!w with pwd_history = old_pwd}; 
   x
@@ -2397,18 +2397,18 @@ let (mkdir: string -> unit) = fun name ->
   (* extend: or filter not/or *)
   assert (is_conjunction pwd);   
                                  
-  let ps = properties_of_formula pwd +> List.map !w.prop_iprop#assoc  in
+  let ps = properties_of_formula pwd |> List.map !w.prop_iprop#assoc  in
   let ps = 
     if (thd3 (top !w.pwd_history)).mkdir_mode = Compat 
-    then [(Prop "props-misc")] +> List.map !w.prop_iprop#assoc 
+    then [(Prop "props-misc")] |> List.map !w.prop_iprop#assoc 
     else ps 
   in
   let ip = new_iprop () in
   
-  hook_action_add_prop +> Common2.run_hooks_action p;
+  hook_action_add_prop |> Common2.run_hooks_action p;
   w := {!w with 
-    graphp = (!w.graphp#add_node ip) +> (fun g -> 
-      ps +> fold (fun g prop -> g#add_arc (prop, ip)) g
+    graphp = (!w.graphp#add_node ip) |> (fun g -> 
+      ps |> fold (fun g prop -> g#add_arc (prop, ip)) g
     );
     iprop_prop = !w.iprop_prop#add (ip, p); 
     prop_iprop = !w.prop_iprop#add (p, ip);
@@ -2450,8 +2450,8 @@ let (mkfile2: filename -> filecontent -> plugin option -> idfile) =
   let fcontent = !core_set_fcontent__fst (Core content, o) in
 
   Common.profile_code "Lfs.mkfile(hooks)" (fun () -> 
-  hook_action_add_file +> Common2.run_hooks_action o;
-  hook_action_mkfile +> Common2.run_hooks_action (o, name);
+  hook_action_add_file |> Common2.run_hooks_action o;
+  hook_action_mkfile |> Common2.run_hooks_action (o, name);
   );
 
   (* opti: call only system transducer, cos useless call transducer plugin
@@ -2466,11 +2466,11 @@ let (mkfile2: filename -> filecontent -> plugin option -> idfile) =
   let intr = 
     Common.profile_code "Lfs.mkfile(2)" (fun () -> 
     if !_realfs 
-    then fcontent +> (transducer_sys !w check_and_add_property name) 
-    else fcontent +> (transducer     !w check_and_add_property name) 
+    then fcontent |> (transducer_sys !w check_and_add_property name) 
+    else fcontent |> (transducer     !w check_and_add_property name) 
     )
   in
-  let extr = properties_conj_of_formula pwd +> map !w.prop_iprop#assoc in
+  let extr = properties_conj_of_formula pwd |> map !w.prop_iprop#assoc in
 
   (* todo: handle taxo, could do a min|= but costly 
    *  => may have to do multiple mv to suppr prop (tant pis) 
@@ -2493,8 +2493,8 @@ let (mkfile2: filename -> filecontent -> plugin option -> idfile) =
       );
     extfiles = 
       !w.graphp 
-        +> upward_props  (file.extrinsic $+$ file.intrinsic) 
-        +> fold (fun extfile p -> 
+        |> upward_props  (file.extrinsic $+$ file.intrinsic) 
+        |> fold (fun extfile p -> 
           extfile#apply p (fun x -> x#add o)
         ) !w.extfiles
   };
@@ -2518,8 +2518,8 @@ let (rm: filename_or_id -> idfile) = fun fid ->
   | Right o -> o 
   in
   let file = !w.files#assoc o in
-  hook_action_del_file +> Common2.run_hooks_action o;
-  hook_action_rm +> Common2.run_hooks_action o;
+  hook_action_del_file |> Common2.run_hooks_action o;
+  hook_action_rm |> Common2.run_hooks_action o;
   w:= {!w with 
     files   = !w.files#delkey o ;
     plugins = del_assoc o !w.plugins;
@@ -2530,8 +2530,8 @@ let (rm: filename_or_id -> idfile) = fun fid ->
        * Thanks to rix beck for pointing out this bug.
        *)
       !w.graphp 
-      +> upward_props (file.extrinsic $+$ file.intrinsic $+$ set [iroot]) 
-      +> fold (fun extfile p -> 
+      |> upward_props (file.extrinsic $+$ file.intrinsic $+$ set [iroot]) 
+      |> fold (fun extfile p -> 
           extfile#apply p (fun x -> x#del o)
       ) !w.extfiles
   };
@@ -2555,7 +2555,7 @@ let rec (mv: filename_or_id -> path -> filename -> unit) =
   let file = !w.files#assoc o in
 
   let oldpwd = pwd() in
-  let oldprops = properties_conj_of_formula oldpwd +> map !w.prop_iprop#assoc 
+  let oldprops = properties_conj_of_formula oldpwd |> map !w.prop_iprop#assoc 
   in
 
   dopath newpath (fun () ->
@@ -2570,7 +2570,7 @@ let rec (mv: filename_or_id -> path -> filename -> unit) =
      * old: assert (not (newname $?$ ls_filenames() ));  *)
 
     let newpwd = pwd() in
-    let newprops = properties_conj_of_formula newpwd +> map !w.prop_iprop#assoc
+    let newprops = properties_conj_of_formula newpwd |> map !w.prop_iprop#assoc
     in
 
     (* todo? handle strange case such as removing/adding a general prop
@@ -2618,9 +2618,9 @@ let rec (mv: filename_or_id -> path -> filename -> unit) =
     
 
     w := {!w with files = !w.files#replkey (o, newfile)};
-    w := {!w with extfiles = todel  +> fold (fun extf p -> 
+    w := {!w with extfiles = todel  |> fold (fun extf p -> 
       extf#apply p (fun x -> x#del o)) !w.extfiles};
-    w := {!w with extfiles = toadd  +> fold (fun extf p -> 
+    w := {!w with extfiles = toadd  |> fold (fun extf p -> 
       extf#apply p (fun x -> x#add o)) !w.extfiles};
 
     (* have to call transducer cos name:/ext: may have changed *)
@@ -2636,7 +2636,7 @@ and transduce_file idfile =
 
   (*  some similarities with mv,  cos kind of mv but for intrinsic  *)
   (*  (could simplify here cos all the prop are mentionned, mais bon) *)
-  let newprops = file.fcontent +> (transducer !w check_and_add_property file.filename) in
+  let newprops = file.fcontent |> (transducer !w check_and_add_property file.filename) in
   let oldprops = file.intrinsic in
 
   let toadd = (newprops $-$ oldprops) $-$ (file.intrinsic) in
@@ -2654,9 +2654,9 @@ and transduce_file idfile =
   let toadd = upward_props toadd !w.graphp in (*  could avoid some mais bon. *)
 
   w := {!w with files = !w.files#replkey (idfile, newfile)};
-  w := {!w with extfiles = todel +> fold (fun extf p -> 
+  w := {!w with extfiles = todel |> fold (fun extf p -> 
     extf#apply p (fun x -> x#del idfile)) !w.extfiles};
-  w := {!w with extfiles = toadd +> fold (fun extf p -> 
+  w := {!w with extfiles = toadd |> fold (fun extf p -> 
     extf#apply p (fun x -> x#add idfile)) !w.extfiles};
   ()
 
@@ -2682,7 +2682,7 @@ let (rmdir: string -> unit) = fun name ->
 
   w:= {!w with 
     graphp = (!w.graphp 
-               +> (fun g -> parents +> fold (fun g prop -> 
+               |> (fun g -> parents |> fold (fun g prop -> 
                  g#del_arc (prop, ip)) g))
                #del_node ip;
     iprop_prop = !w.iprop_prop#delkey ip; 
@@ -2716,12 +2716,12 @@ let (mvdir: string -> path -> string -> unit) = fun oldname newpath newname ->
 
   let ip = !w.prop_iprop#assoc oldp in
   let oldpwd = pwd() in
-  let oldprops = properties_of_formula oldpwd +> map !w.prop_iprop#assoc in
+  let oldprops = properties_of_formula oldpwd |> map !w.prop_iprop#assoc in
 
   dopath newpath (fun () ->
 
     let newpwd = pwd() in
-    let newprops = properties_of_formula newpwd +> map !w.prop_iprop#assoc in
+    let newprops = properties_of_formula newpwd |> map !w.prop_iprop#assoc in
 
     assert (lfs_mode !w = Files);
     assert (is_conjunction oldpwd);
@@ -2747,8 +2747,8 @@ let (mvdir: string -> path -> string -> unit) = fun oldname newpath newname ->
      * of other props under props-system or maybe even props-system itself.
      * pb fleche forte/faible.
      *)
-    assert( todel +> forall (fun ip -> 
-      toadd +> exists (fun ip2 -> ip2 $??$ !w.graphp#successors ip)));
+    assert( todel |> forall (fun ip -> 
+      toadd |> exists (fun ip2 -> ip2 $??$ !w.graphp#successors ip)));
 
 
     (* let _ = Timing() in *)
@@ -2760,11 +2760,11 @@ let (mvdir: string -> path -> string -> unit) = fun oldname newpath newname ->
     end;
     (* let _ = Timing() in *)
 
-    w := {!w with extfiles = newprops +> fold (fun extf p -> 
+    w := {!w with extfiles = newprops |> fold (fun extf p -> 
       extf#apply p (fun x -> x $++$ extprop)) !w.extfiles};
-    w := {!w with graphp = toadd +> fold (fun g prop -> 
+    w := {!w with graphp = toadd |> fold (fun g prop -> 
       g#add_arc (prop, ip)) !w.graphp};
-    w := {!w with graphp = todel +> fold (fun g prop -> 
+    w := {!w with graphp = todel |> fold (fun g prop -> 
       g#del_arc (prop, ip)) !w.graphp};
 
     (* robust: avoid cycle *)
@@ -2780,7 +2780,7 @@ let (read: filename -> filecontent) = fun name ->
   
   if lfs_mode !w = Files
   then !core_get_fcontent__id  file.fcontent
-  else view (pwd ()) (context !w) (assoc idfile !w.parts) +> fst
+  else view (pwd ()) (context !w) (assoc idfile !w.parts) |> fst
 
 (*---------------------------------------------------------------------------*)
 (* The idfile is passed cos transducer subtilty. Before I have a 'write' and
@@ -2799,7 +2799,7 @@ let (write: filename_or_id -> filecontent -> 'a) = fun fid newcontent ->
 
   match lfs_mode !w with
   | Files -> 
-      hook_action_change_file +> Common2.run_hooks_action idfile;
+      hook_action_change_file |> Common2.run_hooks_action idfile;
       transduce_file idfile
   | Parts -> 
       let info = assoc idfile !w.parts in
@@ -2846,26 +2846,26 @@ let (write: filename_or_id -> filecontent -> 'a) = fun fid newcontent ->
       let finalcontent () =  
         newinfo.line_to_part#fold (fun acc (i,o) -> 
           (newinfo.parts_info#assoc o).pcontent :: acc) [] 
-        +> rev +> unwords 
+        |> rev |> unwords 
       in
 
       let newfile = { file with
         fcontent = !core_update_fcontent__fst (finalcontent, idfile);
-        (* todo: intrinsic = finalcontent +> (transducer !w file.filename); but cant do it if use opt reindex_diff, so have to delay it too with computation of fullcontent *)
+        (* todo: intrinsic = finalcontent |> (transducer !w file.filename); but cant do it if use opt reindex_diff, so have to delay it too with computation of fullcontent *)
       } in
-      hook_action_change_file +> Common2.run_hooks_action idfile;
+      hook_action_change_file |> Common2.run_hooks_action idfile;
       log2 (sprintf "add=%d, del=%d\n" (length toadd) (length todel));
 
       let extparts = !w.extparts in
       let extparts =                                                                    (* OPT3 *)
-        todel +> fold (fun extparts o ->                                                (* OPT3 *)
+        todel |> fold (fun extparts o ->                                                (* OPT3 *)
         upward_props (info.parts_info#assoc o).pdescription !w.graphp                 (* OPT3 *)
-          +> fold (fun extparts p -> 
+          |> fold (fun extparts p -> 
             extparts#apply p (fun x -> x#del o)) extparts    (* OPT3 *)
         ) extparts in                                                                   (* OPT3 *)
 
       (*  now can del obsolete obj, dont need anymore their description. *)
-      let newinfo = {newinfo with parts_info = todel +> fold (fun acc o -> 
+      let newinfo = {newinfo with parts_info = todel |> fold (fun acc o -> 
         acc#delkey o) newinfo.parts_info} in
 
       (* better if parts_info have a iter that respect the order of 
@@ -2874,9 +2874,9 @@ let (write: filename_or_id -> filecontent -> 'a) = fun fid newcontent ->
        *)
       (* let _ = Timing() in *)
       let extparts =                                                                                     (* OPT3 *)
-        toadd +> fold (fun extparts o ->                                                                 (* OPT3 *)
+        toadd |> fold (fun extparts o ->                                                                 (* OPT3 *)
           upward_props (newinfo.parts_info#assoc o).pdescription !w.graphp                               (* OPT3 *)
-          +> fold (fun extparts p ->                                                                   (* OPT3 *)
+          |> fold (fun extparts p ->                                                                   (* OPT3 *)
                (* ESTET? *)                                                                            (* OPT3 *)
                 match (try Some (extparts#assoc p) with Not_found -> None) with (* apply with assoc default *) (* OPT3 *)
                 | None   -> extparts#add (p, (empty_ext())#add o)                                      (* OPT3 *)
@@ -2889,10 +2889,10 @@ let (write: filename_or_id -> filecontent -> 'a) = fun fid newcontent ->
      w := {!w with 
        files = !w.files#replkey (idfile, newfile);
        extparts = extparts;
-       parts = !w.parts +> replace_assoc (idfile, newinfo);
+       parts = !w.parts |> replace_assoc (idfile, newinfo);
        partsfile = 
-         toadd +> fold (fun acc o -> acc#add (o, idfile)) 
-           (todel +> fold (fun acc o -> acc#delkey o) 
+         toadd |> fold (fun acc o -> acc#add (o, idfile)) 
+           (todel |> fold (fun acc o -> acc#delkey o) 
                !w.partsfile);
      }
 
@@ -2943,7 +2943,7 @@ let _ = add_hook hook_compute_ext (fun (p,ctx) k  ->
        (match path with 
        | [Element f] -> 
            let oi = (ext f ctx)#tolist in
-           let disj = oi +> fold_left (fun a o -> 
+           let disj = oi |> fold_left (fun a o -> 
              let p = (Prop (rel ^ ":" ^ kind ^ "=i__" ^ (i_to_s o))) in 
              (Or ((Single p, a)))) 
                (Not (Single (Prop "true"))) in
@@ -2964,8 +2964,8 @@ let _ = add_hook hook_compute_ext (fun (p,ctx) k  ->
 
 
 let ls () = 
-  ls () +> (fun (dirs, files) -> 
-   ( (dirs +> List.map (fun ((Prop s), i) -> 
+  ls () |> (fun (dirs, files) -> 
+   ( (dirs |> List.map (fun ((Prop s), i) -> 
       match s with 
       | s when s =~ "\\(.*\\):of=i__\\([0-9]+\\)" -> 
           let (rel, os) = matched2 s in
@@ -2990,7 +2990,7 @@ let (wrap_transducer: ((filecontent -> property set) -> transducer)) =
 
 (*
 let (wrap_adv_transducer: adv_transducer -> adv_itransducer) = fun trans -> 
-  fun parts -> trans parts +> map (map_filter check_and_add_property) 
+  fun parts -> trans parts |> map (map_filter check_and_add_property) 
 *)
 
 (* because of fast_logic *)
@@ -3006,10 +3006,10 @@ let default_is_formula = fun (Prop s) -> true
 let wrap_dir = fun ((Prop s),_) -> s
 
 let ls_bis ()        = 
-  ls() +> (fun (dirs, files) -> 
-    (dirs  +> List.map (fun p -> wrap_dir p ^ "/")) 
+  ls() |> (fun (dirs, files) -> 
+    (dirs  |> List.map (fun p -> wrap_dir p ^ "/")) 
       $+$ 
-    (files +> map (fun id -> id_to_filename id))
+    (files |> map (fun id -> id_to_filename id))
   )
 
 (*  
