@@ -102,7 +102,7 @@ let create_db ~metapath ~use_transact =
 
 let (obj_to_filename: database -> Lfs.idfile -> string) = 
  fun db -> fun obj -> 
-   db.real_path#assoc obj(* +> Common.before_leaving (fun x -> log x)*)
+   db.real_path#assoc obj(* |> Common.before_leaving (fun x -> log x)*)
 
 
 (*****************************************************************************)
@@ -140,8 +140,8 @@ let check_world_semireal db metapath = fun w ->
       );
     );
     if !rm_obj_if_pb then 
-      !todel +> List.iter (fun (o, descr) -> 
-        Lfs.rm (Right o) +> ignore;
+      !todel |> List.iter (fun (o, descr) -> 
+        Lfs.rm (Right o) |> ignore;
       )
   end;
 
@@ -186,7 +186,7 @@ let launch_semireal ~metapath:path_meta ~use_transact =
          * (but normally no more pb cos dont get called) *)
         (try Common.filesize (obj_to_filename db o)
          with _ -> 0
-         ) +> Common.size_ko 
+         ) |> Common.size_ko 
     | _ -> raise Impossible
     );
 
@@ -232,12 +232,12 @@ let launch_semireal ~metapath:path_meta ~use_transact =
 *)
 
 
-  Lfs.hook_action_check_world +> Common.add_hook_action (fun w -> 
+  Lfs.hook_action_check_world |> Common.add_hook_action (fun w -> 
     check_world_semireal db path_meta w
   );
 
 
-  Lfs.hook_action_mkfile +> Common.add_hook_action (fun (o,filename) -> 
+  Lfs.hook_action_mkfile |> Common.add_hook_action (fun (o,filename) -> 
 (*    Common.command2("mkdir -p " ^ (obj_to_path path_meta o)); *)
     (* bugfix: 
      *  command2 ("touch " ^ (obj_to_path o) ^ "/\""^(basename path) ^ "\""));
@@ -259,7 +259,7 @@ let launch_semireal ~metapath:path_meta ~use_transact =
     ()
   );
 
-  Lfs.hook_action_rm +> Common.add_hook_action (fun o -> 
+  Lfs.hook_action_rm |> Common.add_hook_action (fun o -> 
     ()
 (*
     if Flag_lfs.really_delete_not_mv

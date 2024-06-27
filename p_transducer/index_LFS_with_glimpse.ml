@@ -66,7 +66,7 @@ let process s =
     let path = "glimpse/cache_files/" ^ (extract_dir s) in
     command2 ("mkdir -p " ^ path);
     timeout_command_and_exit (commandname  s path)
-      +> (fun b -> if not b then begin pr2 "erasing and killing"; command2 ("rm -f " ^ path ^ "/data.txt") end;)
+      |> (fun b -> if not b then begin pr2 "erasing and killing"; command2 ("rm -f " ^ path ^ "/data.txt") end;)
   in    
   begin    
 
@@ -83,7 +83,7 @@ let process s =
       let path = "glimpse/cache_files/" ^ (extract_dir s) in
       command2 ("mkdir -p " ^ path);
       timeout_command_and_exit (sprintf "pstotext -output %s/data.txt \"%s\" " path s)
-        +> (fun b -> 
+        |> (fun b -> 
           if not b then 
             begin 
               pr2 "erasing and killing"; 
@@ -94,7 +94,7 @@ let process s =
                                          "ps2ascii \"%s\" %s/data.txt  "
                                           (* "gs -q -dNODISPLAY -dSAFER -dDELAYBIND -dWRITESYSTEMDICT -dSIMPLE -c save -f ps2ascii.ps \"%s\"  -c quit >  %s/data.txt  "   *)
                                           s path)
-                +> (fun b -> 
+                |> (fun b -> 
                   if not b then 
                     begin 
                       pr2 "erasing and killing"; 
@@ -111,7 +111,7 @@ let process s =
       command2 ("mkdir -p " ^ path);
       let s = "/tmp/toto.ps" in
       timeout_command_and_exit (sprintf "pstotext -output %s/data.txt \"%s\" " path s)
-        +> (fun b -> 
+        |> (fun b -> 
           if not b then 
             begin 
               pr2 "erasing and killing"; 
@@ -119,7 +119,7 @@ let process s =
 
               pr2 "second tentative";
               timeout_command_and_exit (sprintf "ps2ascii \"%s\" %s/data.txt  " s path)
-                +> (fun b -> 
+                |> (fun b -> 
                   if not b then 
                     begin 
                       pr2 "erasing and killing"; 
@@ -161,9 +161,9 @@ let main () =
 
       let files = process_output_to_list "find files/ -type f" in
       pr2 "find finished";
-      let files = files +> List.filter (fun s -> not ((s =~ ".*/_backup$") || (s =~ ".*/RCS/_backup,v$"))) in
-      (* files +> List.iter pr2;*)
-      files +> List.iter process;
+      let files = files |> List.filter (fun s -> not ((s =~ ".*/_backup$") || (s =~ ".*/RCS/_backup,v$"))) in
+      (* files |> List.iter pr2;*)
+      files |> List.iter process;
 (*      
       command2 "/usr/local/bin/glimpseindex -o -H glimpse/ files/ glimpse/cache_files/";
       command2 "/usr/local/bin/glimpseindex -o -H glimpse/recent_files/ glimpse/recent_files/fake_start";

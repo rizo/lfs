@@ -39,8 +39,8 @@ expr: ATOM           { Name $1 }
     | expr STAR expr { Tuple ($1::[$3]) }
     | LPAR expr COMMA expr_comma RPAR { Tuple ($2::$4) }
     | LCRO expr_list RCRO            { IsoParam (fst $2, snd $2) }
-    | IN expr        { Function ([IsoParam ([$2], true)], (FreePoly ("`" ^ "_a" ^ (counter() +> i_to_s)))) }
-    | OUT expr       { Function ([(FreePoly ("`" ^ "_a" ^ (counter() +> i_to_s)))], $2) } /* TODO? isoparam */
+    | IN expr        { Function ([IsoParam ([$2], true)], (FreePoly ("`" ^ "_a" ^ (counter() |> i_to_s)))) }
+    | OUT expr       { Function ([(FreePoly ("`" ^ "_a" ^ (counter() |> i_to_s)))], $2) } /* TODO? isoparam */
     | INOUT expr     { InOut $2 }
     | LPAR expr RPAR { $2 } 
 

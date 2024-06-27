@@ -103,7 +103,7 @@ let (uninteract_transducer: filename -> (idfile -> filename) -> transducer) =
           Unix.open_process_in (spf "%s '%s'" file ((obj_to_filename o))) in
         (* map_set *)
         let x = 
-          input_line chan +> Common.split "/" +> map (fun s -> Prop s) in 
+          input_line chan |> Common.split "/" |> map (fun s -> Prop s) in 
         ignore(Unix.close_process_in chan); 
         x
       ) 
@@ -139,7 +139,7 @@ let (uninteract_adv_transducer: filename -> (property -> iproperty option) -> ad
   
       let (inc, outc) = Unix.open_process file in 
       let _producer = Thread.create (fun () -> 
-        contents +> List.iter (fun s -> output_string outc s);
+        contents |> List.iter (fun s -> output_string outc s);
         log2 ("advtrans: finished producing");
         close_out outc;
       ) () in
@@ -151,12 +151,12 @@ let (uninteract_adv_transducer: filename -> (property -> iproperty option) -> ad
           try 
             let x = 
               input_line inc 
-              +> split "/"
-              +> map (fun s -> Prop s) 
-              +> map_filter conv (* map_set *)  (* IMPL *)
-              +> (fun x -> if x = [] then [Lfs.iroot] else x)                (* IMPL *)
-                (* +> map (fun s -> Prop s)                   ##SPEC *)
-                (* +> (fun x -> if x = [] then [root] else x) ##SPEC *)
+              |> split "/"
+              |> map (fun s -> Prop s) 
+              |> map_filter conv (* map_set *)  (* IMPL *)
+              |> (fun x -> if x = [] then [Lfs.iroot] else x)                (* IMPL *)
+                (* |> map (fun s -> Prop s)                   ##SPEC *)
+                (* |> (fun x -> if x = [] then [root] else x) ##SPEC *)
             in 
             log3 ("advtrans: having");
             x::aux() 
@@ -173,5 +173,5 @@ let (uninteract_adv_transducer: filename -> (property -> iproperty option) -> ad
     )
     with 
     | Timeout -> raise Timeout
-    | _ -> contents +> List.map (fun x -> empty_list)
+    | _ -> contents |> List.map (fun x -> empty_list)
 

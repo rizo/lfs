@@ -59,7 +59,7 @@ object(o)
     o
 
   method iter f = 
-    db +> Dbm.iter (fun key data -> 
+    db |> Dbm.iter (fun key data -> 
       let k' = (* unkey *) Common.marshal__from_string key 0 in 
       let v' = unv (Common.marshal__from_string data 0) in
       f (k', v')
@@ -85,7 +85,7 @@ object(o)
 
   method keys = 
     let res = ref [] in 
-    db +> Dbm.iter (fun key data -> 
+    db |> Dbm.iter (fun key data -> 
       let k' = (* unkey *) Common.marshal__from_string key 0 in 
       (* 
          let v' = unv (Common.marshal__from_string data 0) in

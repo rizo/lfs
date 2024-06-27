@@ -90,16 +90,16 @@ let rec invariant = fun ((d, mo, y), (h, m, s)) ->
     | None -> true
     | Some (Exact i) -> f i 
   in
-  d  +> wrap (fun i -> i >= 1 && i <= 31) && (* TODO? sometimes can check when given month if valid *)
-  mo +> wrap (fun i -> i >= 1 && i <= 12) &&
-  h  +> wrap (fun i -> i >= 0 && i <= 24) &&
-  m  +> wrap (fun i -> i >= 0 && i <= 59) &&
-  s  +> wrap (fun i -> i >= 0 && i <= 59) &&
+  d  |> wrap (fun i -> i >= 1 && i <= 31) && (* TODO? sometimes can check when given month if valid *)
+  mo |> wrap (fun i -> i >= 1 && i <= 12) &&
+  h  |> wrap (fun i -> i >= 0 && i <= 24) &&
+  m  |> wrap (fun i -> i >= 0 && i <= 59) &&
+  s  |> wrap (fun i -> i >= 0 && i <= 59) &&
   true
 
 type datelist = interv option list
 let string_of_datelist = fun xs -> 
-  join "-" (xs +> map (function | None -> "*" | Some (Exact i) -> i_to_s i))
+  join "-" (xs |> map (function | None -> "*" | Some (Exact i) -> i_to_s i))
 
 let rec (date_logic:logic) = fun (Prop s1) (Prop s2) -> 
   let (x1, x2) = (parse s1, parse s2) in

@@ -10,7 +10,7 @@ let parse = fun s ->
   | s when s =~ "^>\\([0-9]+\\)$" -> Sup (s_to_i (matched1 s))
   | s when s =~ "^<\\([0-9]+\\)$" -> Inf (s_to_i (matched1 s))
   | s when s =~ "^\\[\\([0-9]+\\)\\.\\.\\([0-9]+\\)\\]$" -> 
-      let (x1, x2) = matched2 s +> pair s_to_i in
+      let (x1, x2) = matched2 s |> pair s_to_i in
       let _ = assert(x1 < x2) in
       In (x1, x2)
   (* sugar *)

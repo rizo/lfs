@@ -102,7 +102,7 @@ note: could be call to have the -and for solver, cos when do cd ?'a/!'b in fact 
 *)
 
 let parse = fun s -> 
-  Lexing.from_string s +> Typeparser.main Typelexer.token
+  Lexing.from_string s |> Typeparser.main Typelexer.token
 
 let type_logic = fun (Prop s1) (Prop s2) -> 
     let (x1, x2) = (parse s1, parse s2) in
@@ -117,7 +117,7 @@ let type_logic = fun (Prop s1) (Prop s2) ->
       | (Name s1, Name s2) -> s1 = s2
       | (Poly s1, Poly s2) -> s1 = s2    (* TODO alpha renaming pb *)
       | (Tuple xs, Tuple ys) when length xs = length ys -> 
-	  zip xs ys +> map solver_rec +> and_list (* TODO subst/unify (and in other place too) *)
+	  zip xs ys |> map solver_rec |> and_list (* TODO subst/unify (and in other place too) *)
       | (Application (a1,b1), Application (a2, b2)) ->
 	  a1 = a2 && solver_rec (b1, b2) 
 	    
@@ -132,7 +132,7 @@ let type_logic = fun (Prop s1) (Prop s2) ->
 	  solver_rec (out1, out2)
       | (Function (ins1, out1), Function (ins2, out2)) when length ins1 = length ins2 -> 
 	  (* TODO inversion? with contravariance *)
-	  zip ins1 ins2 +> map solver_rec +> and_list  && solver_rec (out1, out2) 
+	  zip ins1 ins2 |> map solver_rec |> and_list  && solver_rec (out1, out2) 
       |	(x, (IsoParam (xs, etc))) -> for_iso2 (xs, etc) x
 	    
       | (x,y) -> false
@@ -145,9 +145,9 @@ let type_logic = fun (Prop s1) (Prop s2) ->
     and for_inout x = function
       |	y when y = x -> true
       |	(Name _ | Poly _) -> false
-      |	Tuple xs -> xs +> List.exists (for_inout x)
+      |	Tuple xs -> xs |> List.exists (for_inout x)
       |	Application (a, b) -> for_inout x (Name a) || for_inout x b
-      |	Function (xs, b) -> xs +> List.exists (for_inout x) || for_inout x b
+      |	Function (xs, b) -> xs |> List.exists (for_inout x) || for_inout x b
       |	_ -> raise Impossible 
 
     and for_iso (ins, isoargs, allowmore) = 
@@ -156,7 +156,7 @@ let type_logic = fun (Prop s1) (Prop s2) ->
       |	(_,     [], true) -> true
       |	([], x::xs, _) -> false
       |	(vs, x::xs, _) when List.mem x vs -> (* TODO, could be formula => replace mem by call to solver *)
-	  for_iso (vs +> filter (fun v -> not (v = x)),   xs, allowmore)
+	  for_iso (vs |> filter (fun v -> not (v = x)),   xs, allowmore)
       |	_ -> false
 	  
 

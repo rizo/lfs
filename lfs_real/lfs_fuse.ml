@@ -182,7 +182,7 @@ let transact_with_timeout trans_func timeout print_backtrace = fun f ->
           let s = Printexc.get_backtrace () in
           pr2 s;
         );
-        Common.cat tmpfile +> List.iter (fun s -> 
+|
           log ("trace:" ^ s);
         );
       end;
@@ -355,7 +355,7 @@ let launch_fuse
     Unix.symlink "xxx" (Lfs_real.obj_to_path path_meta o ^ "/data");
 
 
-    Lfs.read s +> Common.write_file 
+    Lfs.read s |> Common.write_file 
       (* obj_to_filename now read data as a link, so must have created 
        * the link first 
        *)
@@ -377,11 +377,11 @@ let launch_fuse
       log ("getdir:" ^ path);
       Path.cd_ path;
 
-      Lfs.ls() +> (fun (ps, fs) ->
+      Lfs.ls() |> (fun (ps, fs) ->
         Common.if_log3 (fun () -> 
-          ps +> List.iter (fun (Prop p,_) -> 
+          ps |> List.iter (fun (Prop p,_) -> 
             log3 ("dirs:" ^ p));
-          fs +> List.iter (fun id -> 
+          fs |> List.iter (fun id -> 
             log3 ("files:" ^ Lfs.id_to_filename id));
         );
 
@@ -402,7 +402,7 @@ let launch_fuse
 
 
         (* XXX1 obsolete now ? *)
-	fs +> iter (fun id -> 
+	fs |> iter (fun id -> 
           let s = Lfs.id_to_filename id in
           del_cache_path_item (Filename.concat path s)
         );
@@ -411,12 +411,12 @@ let launch_fuse
          * internally, so never get call on a getattr "." or ".." I think. *)
         ([".";".."])  
         ++
-	  (ps +> map (fun ((Prop p),i) -> 
+	  (ps |> map (fun ((Prop p),i) -> 
             add_cache_path_item (Filename.concat path p,(Dir(i,!_dirtyrmdir)));
             p)  
           )
 	++
-	  (fs +> map (fun id -> 
+	  (fs |> map (fun id -> 
             let s = Lfs.id_to_filename id in
             let s =
               if Lfs.lfs_mode !w = Files
@@ -455,7 +455,7 @@ let launch_fuse
     then begin 
       log3 "IDLEEEEEEEEEEEE"; 
       trans_func.Lfs_persistent.checkpoint();
-      trans_func.Lfs_persistent.archives () +> List.iter (fun s -> 
+      trans_func.Lfs_persistent.archives () |> List.iter (fun s -> 
         log ("erasing log file:" ^ path_meta ^ "/" ^ s);
         Common.command2 ("rm " ^ path_meta ^ "/" ^ s);
       );
@@ -720,7 +720,7 @@ let launch_fuse
               | _ -> ()
               );
               let newname = 
-                if ((oldname =~ ".*<[0-9]+>.*") && newname = oldname)
+                if ((oldname =~ ".*<[0-9]|>.*") && newname = oldname)
                 then decode_ambiguate oldname o1
                 else newname
               in
@@ -870,5 +870,5 @@ let launch_fuse
   then Unix.kill pid_idle Sys.sigkill;
 
   trans_func.Lfs_persistent.final();
-  hook_action_umount +> Common.run_hooks_action ();
+  hook_action_umount |> Common.run_hooks_action ();
   ()

@@ -1,10 +1,13 @@
 open Common
 
 open Lfs
-open Path
+open Lfs_path
 
 open Plugins
 (* open Ioplugins *)
+
+let ($=$) = Common2.($=$)
+let set = Common2.set
 
 (*****************************************************************************)
 (* note: to debug can be helpful to put some  'end let res () =  begin'  
@@ -16,7 +19,7 @@ open Plugins
 
 (*****************************************************************************)
 let ls_ () = Lfs.ls_bis ()
-let ls_print () = ls_() +> List.iter print_endline
+let ls_print () = ls_() |> List.iter print_endline
 
 (*****************************************************************************)
 let principles_demo () = 
@@ -60,7 +63,7 @@ let principles_demo () =
     (*--------------------------------------------------------------*)
     (* \subsubsection{Manipulate files} *)
     (*--------------------------------------------------------------*)
-    rm (Left "washington.jpg") +> ignore;
+    rm (Left "washington.jpg") |> ignore;
     
     (*--------------------------------------------------------------*)
     cd_ "/";
@@ -211,7 +214,7 @@ let principles_demo () =
 			 "return z * 4";
 			 "}";
 		       ]);
-    assert(c_adv_transducer (read "foo.c" +> lines_with_nl +> take 2)
+    assert(c_adv_transducer (read "foo.c" |> Common2.lines_with_nl |> take 2)
 	     = [ [Prop "var:x"; Prop "synchro"; Prop "function:f"];  (* ADDON *)
 		 [Prop "var:y"; Prop "function:f"]]);
 
@@ -240,7 +243,7 @@ let principles_demo () =
 	       "synchro/"; (* ADDON *)
 	       "foo.c"
 	     ] );
-    assert(read "foo.c" +> lines_with_nl +> length = 10);
+    assert(read "foo.c" |> Common2.lines_with_nl |> Common2.length = 10);
 
     (*--------------------------------------------------------------*)
     (* \subsubsection{Retrieve and select file contents} *)
@@ -251,7 +254,7 @@ let principles_demo () =
 	       "debugging/"; "error/";
 	       "synchro/"; (* ADDON *)
 	       "foo.c"]);
-    assert(read "foo.c" +> lines_with_nl +> length  = 7); 
+    assert(read "foo.c" |> Common2.lines_with_nl |> Common2.length  = 7); 
 
     (*--------------------------------------------------------------*)
     cd_ "!(debugging|error)";
@@ -271,7 +274,7 @@ let principles_demo () =
     (*--------------------------------------------------------------*)
     (* \subsubsection{Manipulate file contents} *)
     (*--------------------------------------------------------------*)
-    read "foo.c" +> Str.global_replace (Str.regexp "y") "z" +> write (Left "foo.c");
+    read "foo.c" |> Str.global_replace (Str.regexp "y") "z" |> write (Left "foo.c");
     assert(ls_() $=$ set ["var:x/"; "var:z/"; 
 			   "synchro/"; (* ADDON *)
 			   "foo.c"]);
@@ -482,13 +485,13 @@ end let res () =  begin
     print_endline (read "ridoux.bib");
 
     ls_print();
-    read "ridoux.bib" +> Str.global_replace (Str.regexp "2002") "2001" +> write (Left "ridoux.bib");
+    read "ridoux.bib" |> Str.global_replace (Str.regexp "2002") "2001" |> write (Left "ridoux.bib");
 
     ls_print();
     print_endline (read "ridoux.bib");
 
     ignore(ls_());
-    read "ridoux.bib" +> Common.lines_with_nl +> bibtex_adv_transducer
+    read "ridoux.bib" |> Common2.lines_with_nl |> bibtex_adv_transducer
 
   end
 
@@ -618,14 +621,14 @@ let demo_bug_mix_beck () =
     rmdir "c";
     ls_print(); pr " done2";
     (* => ab  bc *)
-    rm (Left "bc") +> ignore;
+    rm (Left "bc") |> ignore;
     let ctx = Lfs.context !w in
     let allo = Lfs.ext (Single (Prop "true")) ctx in
     pr2_gen allo;
     (* Lfs.check_world !Lfs.w; *)
     ls_print(); pr " done3";
     (* ab *)
-    rm (Left "ab") +> ignore;
+    rm (Left "ab") |> ignore;
     ls_print(); pr " done4";
 
   end
@@ -654,7 +657,7 @@ let demos_list =
 
     "bug_mix_beck" , demo_bug_mix_beck;
   ]
-let all_demos_str = demos_list +> List.map fst +> Common.join " "
+let all_demos_str = demos_list |> List.map fst |> Common.join " "
 
 let demo = ref default_demo
 
@@ -665,9 +668,9 @@ let main ()  =
   begin
     Lfs.copyright ();
 
-    Common.verbose_level := 1;
+    Common2.verbose_level := 1;
     (* ugly: to have same value than real_lfs for file identifier *)
-    Common._counter := 2; 
+    Common2._counter := 2; 
 
     let options = [
       "-demo", Arg.Set_string demo, 
@@ -677,7 +680,7 @@ let main ()  =
     ]
     in
     let usage_msg = 
-      ("Usage: " ^ Common.basename Sys.argv.(0) ^ 
+      ("Usage: " ^ Common2.basename Sys.argv.(0) ^ 
           " [options]\nOptions are:") 
     in
     let args = Common.parse_options options usage_msg Sys.argv in
@@ -694,7 +697,7 @@ let main ()  =
     if !statistics then begin
       Gc.full_major();
       Gc.compact();
-      Common.memory_stat() +> print_endline;
+      Common2.memory_stat() |> print_endline;
       Lfs.stat_world !w;
     end;
     pr2 "Done";

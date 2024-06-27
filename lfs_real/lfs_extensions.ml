@@ -48,10 +48,10 @@ let reset_cache () =
 
 let _ = 
   begin
-    Lfs.hook_action_add_prop +> add_hook_action (fun _ -> reset_cache ());
-    Lfs.hook_action_add_file +> add_hook_action (fun _ -> reset_cache ());
-    Lfs.hook_action_del_file +> add_hook_action (fun _ -> reset_cache ());
-    Lfs.hook_action_change_file +> add_hook_action (fun _ -> reset_cache ());
+    Lfs.hook_action_add_prop |> add_hook_action (fun _ -> reset_cache ());
+    Lfs.hook_action_add_file |> add_hook_action (fun _ -> reset_cache ());
+    Lfs.hook_action_del_file |> add_hook_action (fun _ -> reset_cache ());
+    Lfs.hook_action_change_file |> add_hook_action (fun _ -> reset_cache ());
   end
 
 (*****************************************************************************)
@@ -105,12 +105,12 @@ let install_datetoday_extension () =
     add_hook Lfs.hook_compute_ext (fun (p,ctx) k  -> 
       match p with
       | (Prop x) when x = "date:today" -> 
-          let time = Unix.time () +> Unix.localtime in
+          let time = Unix.time () |> Unix.localtime in
           ext_time time (p,ctx) k
       | (Prop x) when x = "date:yesterday" -> 
-          let time = Unix.time () +> Unix.localtime in
+          let time = Unix.time () |> Unix.localtime in
           let time' = {time with Unix.tm_mday = time.Unix.tm_mday - 1 } in
-          let time = Unix.mktime time' +> snd in
+          let time = Unix.mktime time' |> snd in
 
           ext_time time (p,ctx) k
 
@@ -138,22 +138,22 @@ let restricted_props = [
 let compute_suffix_tree () = 
   let strings = 
     if !Flag_lfs.stree_index_all_properties 
-    then !w.prop_iprop#tolist +> List.rev_map (fun (Prop s, _)  -> s) 
+    then !w.prop_iprop#tolist |> List.rev_map (fun (Prop s, _)  -> s) 
     else 
       let parents = 
-        restricted_props +> map (fun s -> !w.prop_iprop#assoc (Prop s)) in
+        restricted_props |> map (fun s -> !w.prop_iprop#assoc (Prop s)) in
 
       let children =
-        parents +> fold_left (fun a p -> a $++$ (!w.graphp#successors p)) 
+        parents |> fold_left (fun a p -> a $++$ (!w.graphp#successors p)) 
           (emptysb()) in
-      children#tolist +> rev_map (fun ip -> string_of_prop (!w.iprop_prop#assoc ip))
+      children#tolist |> rev_map (fun ip -> string_of_prop (!w.iprop_prop#assoc ip))
   in
       
   let array = DynArray.of_list strings in
   
   (* lowercase, so stree: have implicetely a -i *)
-  let strings = strings +> rev_map (fun s -> lowercase s) in
-  let strings = strings +> fold (fun a s -> 
+  let strings = strings |> rev_map (fun s -> lowercase s) in
+  let strings = strings |> fold (fun a s -> 
     (if s =~ "^[a-zA-Z_0-9]+:\\(.+\\)"
     then matched1 s
     else s
@@ -177,7 +177,7 @@ let _suffix_info = Lazy.lazy_from_fun compute_suffix_tree
 
 let grep_with_suffix prop =
   let (gst, array) = Lazy.force _suffix_info in
-  (Suffix_tree_ext.exact_matches gst prop) +> map (fun (i,j) -> 
+  (Suffix_tree_ext.exact_matches gst prop) |> map (fun (i,j) -> 
     DynArray.get array i
   )  
 
@@ -238,13 +238,13 @@ let (_new_files: objet oset ref) =  ref (emptysb())
 
 let install_stree_glimpse_and_co_extension metapath use_glimpse = 
   begin
-    hook_action_add_prop +> add_hook_action (fun (Prop p) -> 
+    hook_action_add_prop |> add_hook_action (fun (Prop p) -> 
       if Lazy.lazy_is_val _suffix_info 
       then 
         let (gst, array) = Lazy.force _suffix_info in
         Suffix_tree_ext.add 
           (* todo?: if not stree_index_all_properties, filter some prop p ?*)
-          (p +> lowercase +> (fun s -> 
+          (p |> lowercase |> (fun s -> 
             if s =~ "^[a-zA-Z_0-9]+:\\(.+\\)"
             then matched1 s
             else s
@@ -254,23 +254,23 @@ let install_stree_glimpse_and_co_extension metapath use_glimpse =
       else ()
     );
 
-    hook_action_add_file +> add_hook_action (fun o -> 
+    hook_action_add_file |> add_hook_action (fun o -> 
       _new_files := !_new_files#add o
     );
-    hook_action_del_file +> add_hook_action (fun o -> 
+    hook_action_del_file |> add_hook_action (fun o -> 
       _new_files := !_new_files#del o
     );
-    hook_action_change_file +> add_hook_action (fun o -> 
+    hook_action_change_file |> add_hook_action (fun o -> 
       _new_files := !_new_files#add o
     );
 
     if use_glimpse then 
-      Lfs_fuse.hook_action_umount +> add_hook_action (fun () -> 
+      Lfs_fuse.hook_action_umount |> add_hook_action (fun () -> 
         let notglimpsed = !_new_files#tolist in
-        let filepaths = notglimpsed +> List.map (fun o -> 
+        let filepaths = notglimpsed |> List.map (fun o -> 
           Lfs_real.obj_to_path metapath o
         ) in
-        filepaths +> List.iter (fun path -> 
+        filepaths |> List.iter (fun path -> 
           log ("glimpseindex adding: "^ path);
           Common.command2 ("glimpseindex -o -H " ^ 
                               (metapath ^  "/glimpse/recent_files/") ^ 
@@ -327,8 +327,8 @@ let install_stree_glimpse_and_co_extension metapath use_glimpse =
               if kind = "google" || kind = "stree" || kind = "all" 
               then
                 let ys = grep_with_suffix prop in
-                ys +> map (fun s -> Prop s)
-                +> (fun xs -> ((emptysb())#fromlist xs)#tolist )
+                ys |> map (fun s -> Prop s)
+                |> (fun xs -> ((emptysb())#fromlist xs)#tolist )
               else []
             in
             let glimpse_result = 
@@ -351,29 +351,29 @@ let install_stree_glimpse_and_co_extension metapath use_glimpse =
                     Common.cmd_to_list ("glimpse -l -y -i -H " ^ 
                                         (metapath^"/glimpse/")^" "^ "\"" ^ prop ^ "\"")
                   in
-                  matched +> List.iter (fun s -> log ("glimpse found: " ^ s));
+                  matched |> List.iter (fun s -> log ("glimpse found: " ^ s));
                   
                   let matched2 = 
                     Common.cmd_to_list ("glimpse -l -y -i -H " ^ 
                                          (metapath^"/glimpse/recent_files") ^ " " ^ "\"" ^
                                          prop ^ "\"")
                   in
-                  matched2 +> List.iter (fun s -> log ("glimpse recent found: " ^ s));
+                  matched2 |> List.iter (fun s -> log ("glimpse recent found: " ^ s));
                   
                   let notglimpsed = !_new_files#tolist in
-                  let filenames = notglimpsed +> List.map (fun o -> 
+                  let filenames = notglimpsed |> List.map (fun o -> 
                     Lfs_real.obj_to_filename metapath o
                   ) in
                   let matched3 = 
                     Common.cmd_to_list ("grep -i -l -I " ^ "\"" ^ 
                                            prop ^ "\"" ^ " " ^ 
                                            (join " " filenames)) in
-                  let matched3 = matched3 +> List.filter (fun s -> 
+                  let matched3 = matched3 |> List.filter (fun s -> 
                     not ((s =~ "No such file or directory") || 
                          (s =~ "Binary file"))) 
                   in
                  
-                  (matched ++ matched2 ++ matched3) +> fold (fun a s -> 
+                  (matched ++ matched2 ++ matched3) |> fold (fun a s -> 
                     if s =~ ".*files/[0-9]+/\\([0-9]+\\)/" then
                       let numfile = matched1 s in
                       (Prop ("inode:" ^ numfile))::a
@@ -384,14 +384,14 @@ let install_stree_glimpse_and_co_extension metapath use_glimpse =
             in
             let result = agrep_result ++ stree_result ++ glimpse_result in
 
-            let result = result +> filter (fun prop -> 
+            let result = result |> filter (fun prop -> 
               if lfs_mode !w = Parts && 
                 not (!w.extparts#haskey (!w.prop_iprop#assoc prop))
               then false 
               else true
             ) 
             in
-            let disj = result +> fold_left (fun a p -> 
+            let disj = result |> fold_left (fun a p -> 
               (Or ((Single p, a)))) (Not (Single (Prop "true"))) 
             in
             

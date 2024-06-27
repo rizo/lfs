@@ -42,9 +42,9 @@ let check_world_real metapath = fun w ->
   pr2 "Checking accessibility of files";
   let all_files = w.Lfs.extfiles#assoc iroot in
   Common.execute_and_show_progress (all_files#cardinal) (fun k ->
-   readdir_to_dir_list (metapath ^ "/files/") +> List.iter (fun s1 -> 
+|
      if s_to_i s1 < 2000 then (* not view files *)
-       readdir_to_dir_list (metapath ^ "/files/" ^ s1) +> List.iter (fun s2 -> 
+       readdir_to_dir_list (metapath ^ "/files/" ^ s1) |> List.iter (fun s2 -> 
          k();
          let o = (s_to_i s2) in
          if not (o $??$ all_files) then begin
@@ -75,9 +75,9 @@ let check_world_real metapath = fun w ->
       );
     );
     if !rm_obj_if_pb then 
-      !todel +> List.iter (fun (o, descr) -> 
+      !todel |> List.iter (fun (o, descr) -> 
         Common.write_file (metapath^ "/lost+found/" ^i_to_s o^ ".old") descr;
-        Lfs.rm (Right o) +> ignore;
+        Lfs.rm (Right o) |> ignore;
       )
   end;
 
@@ -121,7 +121,7 @@ let launch_real path_meta =
          * (but normally no more pb cos dont get called) *)
         (try Common.filesize (obj_to_filename path_meta o)
          with _ -> 0
-         ) +> Common.size_mo_ko 
+         ) |> Common.size_mo_ko 
     | _ -> raise Impossible
     );
 
@@ -173,12 +173,12 @@ let launch_real path_meta =
     );
 
 
-  Lfs.hook_action_check_world +> Common.add_hook_action (fun w -> 
+  Lfs.hook_action_check_world |> Common.add_hook_action (fun w -> 
     check_world_real path_meta w
   );
 
 
-  Lfs.hook_action_mkfile +> Common.add_hook_action (fun (o,filename) -> 
+  Lfs.hook_action_mkfile |> Common.add_hook_action (fun (o,filename) -> 
     Common.command2("mkdir -p " ^ (obj_to_path path_meta o));
     (* bugfix: 
      *  command2 ("touch " ^ (obj_to_path o) ^ "/\""^(basename path) ^ "\""));
@@ -197,7 +197,7 @@ let launch_real path_meta =
     Unix.symlink filename (obj_to_path path_meta o ^ "/data");
   );
 
-  Lfs.hook_action_rm +> Common.add_hook_action (fun o -> 
+  Lfs.hook_action_rm |> Common.add_hook_action (fun o -> 
     if Flag_lfs.really_delete_not_mv
     then begin
       (* todo?: erase the RCS/ too ? *)

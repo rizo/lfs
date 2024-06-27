@@ -80,15 +80,15 @@ module Charset =
 
     let add s c =
       let i = Char.code c in
-      s.[i lsr 3] <- Char.chr(Char.code s.[i lsr 3] lor (1 lsl (i land 7)))
+      Bytes.set s (i lsr 3) (Char.chr(Char.code s.[i lsr 3] lor (1 lsl (i land 7))))
 
     let add_range s c1 c2 =
       for i = Char.code c1 to Char.code c2 do add s (Char.chr i) done
 
     let complement s =
-      let r = String.create 32 in
+      let r = Bytes.create 32 in
       for i = 0 to 31 do
-        r.[i] <- Char.chr(Char.code s.[i] lxor 0xFF)
+        Bytes.set r i (Char.chr(Char.code s.[i] lxor 0xFF))
       done;
       r
 

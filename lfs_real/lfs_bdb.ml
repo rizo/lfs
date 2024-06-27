@@ -112,7 +112,7 @@ let launch_bdb path_meta use_transact =
       incr _count;
       create_db ("extparts" ^ i_to_s !_count) path_meta env no_need_transact 
         seti_f (* coupling: must be same seti than in empty_ext *)
-        +> fst;
+|
     );
   
   Lfs.empty_partsinfo := (fun () ->
@@ -122,7 +122,7 @@ let launch_bdb path_meta use_transact =
      * assoc 
      *)
     create_db ("partsinfo"^ i_to_s !_count) path_meta env no_need_transact id_f
-      +> fst;
+      |> fst;
   );
   Common.command2 ("rm -f " ^ path_meta ^ "/*extparts*");
   Common.command2 ("rm -f " ^ path_meta ^ "/*partsinfo*");
@@ -152,16 +152,16 @@ let launch_bdb path_meta use_transact =
   
   Lfs.w := { default  with
     Lfs.graphp = (new Ograph2way.ograph2way children parents Lfs.emptysb)
-      +> ifinit (fun o -> o#add_node Lfs.iroot);
+      |> ifinit (fun o -> o#add_node Lfs.iroot);
     prop_iprop = prop_iprop
-      +> ifinit (fun o -> o#add (Lfs.root, Lfs.iroot));
+      |> ifinit (fun o -> o#add (Lfs.root, Lfs.iroot));
     iprop_prop = iprop_prop
-      +> ifinit (fun o -> o#add (Lfs.iroot, Lfs.root));
+      |> ifinit (fun o -> o#add (Lfs.iroot, Lfs.root));
     cache_is_formula = cache_is_formula;
 
     files = files;
     extfiles = extfiles
-      +> ifinit (fun o -> o#add (Lfs.iroot, Lfs.empty_ext ()));
+      |> ifinit (fun o -> o#add (Lfs.iroot, Lfs.empty_ext ()));
   };
 
   (* transaction part 2 *)

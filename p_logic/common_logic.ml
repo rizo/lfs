@@ -7,7 +7,7 @@ type logic    = (property -> property -> bool)  (* mean: a |= b ? *)
 (* make ml solver stdin(argv)/stdout compliant *)
 let (interact_logic_old: logic -> unit) = fun (|=)  -> 
   let xs = Array.to_list Sys.argv in
-  let xs = xs +> Common.exclude (fun s -> s = "-test") in
+  let xs = xs |> Common.exclude (fun s -> s = "-test") in
 
   match xs  with
   | [_;x;y] -> 
@@ -18,7 +18,7 @@ let (interact_logic_old: logic -> unit) = fun (|=)  ->
       failwith ("give me 2 formulas, not " ^ 
                    (i_to_s (length xs)) ^ 
                    "\nI was given:\n" ^ 
-                   (xs +> join "\n") ^ "\n")
+                   (xs |> join "\n") ^ "\n")
   | _ -> raise Impossible
   (* can also return exception *)	
 

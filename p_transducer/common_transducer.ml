@@ -6,6 +6,6 @@ type transducer = (filecontent -> property set)
 
 let (interact_transducer: transducer -> unit) = fun trans -> 
   match (Array.to_list Sys.argv ) with
-  | [_;x] -> read_file x +> trans +> map (fun (Prop s) -> s) +> join "/" +> print_endline
+  | [_;x] -> read_file x +> trans +> map (fun (Prop s) -> s) +> join "/" |> print_endline
   | _ -> failwith "PB:"
 

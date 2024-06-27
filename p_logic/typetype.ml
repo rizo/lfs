@@ -24,21 +24,21 @@ let rec string_of_typep = function
   | Name s -> s
   | Poly s -> s
   | Function (es, e2) -> 
-      "(" ^ (es +> map string_of_typep +> join "|") ^ ")"  
+      "(" ^ (es |> map string_of_typep |> join "|") ^ ")"  
        ^ "->" ^
       "(" ^ string_of_typep e2 ^ ")" 
-  | Tuple xs -> "(" ^ join " * " (xs +> map string_of_typep) ^ ")"
+  | Tuple xs -> "(" ^ join " * " (xs |> map string_of_typep) ^ ")"
   | Application (s, e2) -> s ^ " " ^ string_of_typep e2
 
-  | IsoParam (xs, b) -> "[" ^ join "," (xs +> map string_of_typep) ^ (if b then ",..." else "") ^ "]"
+  | IsoParam (xs, b) -> "[" ^ join "," (xs |> map string_of_typep) ^ (if b then ",..." else "") ^ "]"
   | FreePoly s -> s
   | InOut e -> "%" ^ string_of_typep e
 
 let rec is_formula = function
   | Name s -> false
   | Poly s -> false
-  | Function (es, e2) -> es +> List.exists is_formula || is_formula e2
-  | Tuple xs -> xs +> List.exists is_formula
+  | Function (es, e2) -> es |> List.exists is_formula || is_formula e2
+  | Tuple xs -> xs |> List.exists is_formula
   | Application (e1, e2) -> is_formula e2
 
   | IsoParam _ -> true
