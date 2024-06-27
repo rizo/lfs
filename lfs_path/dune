@@ -1,0 +1,8 @@
+(library
+  (name lfs_path)
+  (libraries commons lfs))
+
+(ocamllex pathlexer)
+
+(ocamlyacc
+ (modules pathparser))

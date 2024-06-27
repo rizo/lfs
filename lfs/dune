@@ -1,0 +1,3 @@
+(library
+  (name lfs)
+  (libraries commons commons_ocollection commons_core))

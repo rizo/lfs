@@ -10,3 +10,4 @@
 /docs/user-manual/main.log
 /ocamlbdb/bdb.ml
 /ocamlbdb/bdb_stubs.c
+_build

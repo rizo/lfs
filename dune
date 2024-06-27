@@ -1,0 +1,4 @@
+(executable
+  (name demo)
+  (modules Demo Plugins)
+  (libraries commons lfs lfs_path))

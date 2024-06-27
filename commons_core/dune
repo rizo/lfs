@@ -1,0 +1,5 @@
+(library
+  (name commons_core)
+  (wrapped false)
+  (libraries str unix pcre pyml mpi commons))
+
